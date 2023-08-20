@@ -34,7 +34,7 @@ class BtechAdmin(ExportActionMixin, admin.ModelAdmin):
         all_records = Btech.objects.filter(pk__in = all_ids) #pk is primary key
         # print(btech_records)
         context = {'all_records' : all_records}
-        return render(request,'pdfs-btech.html', context)
+        return render(request,'btech/pdfs-btech.html', context)
     
     @admin.action(description='Allow for Counselling')
     def allowCounselling(modeladmin, request, queryset):
@@ -119,7 +119,7 @@ class BtechLEAdmin(ExportActionMixin, admin.ModelAdmin):
             all_ids.append(query.id)
         all_records = BtechLE.objects.filter(pk__in = all_ids) #pk is primary key
         context = {'all_records' : all_records}
-        return render(request,'pdfs-btechle.html', context)
+        return render(request,'pdfs/pdfs-btechle.html', context)
     
     @admin.action(description='Allow for Counselling')
     def allowCounselling(modeladmin, request, queryset):
@@ -204,7 +204,7 @@ class BbaAdmin(ExportActionMixin, admin.ModelAdmin):
             all_ids.append(query.id)
         all_records = Bba.objects.filter(pk__in = all_ids) #pk is primary key
         context = {'all_records' : all_records}
-        return render(request,'pdfs-bba.html', context)
+        return render(request,'pdfs/pdfs-bba.html', context)
     
     @admin.action(description='Allow for Counselling')
     def allowCounselling(modeladmin, request, queryset):
@@ -289,7 +289,7 @@ class MbaAdmin(ExportActionMixin, admin.ModelAdmin):
             all_ids.append(query.id)
         all_records = Mba.objects.filter(pk__in = all_ids) #pk is primary key
         context = {'all_records' : all_records}
-        return render(request,'pdfs-mba.html', context)
+        return render(request,'pdfs/pdfs-mba.html', context)
     
     @admin.action(description='Allow for Counselling')
     def allowCounselling(modeladmin, request, queryset):
