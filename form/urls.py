@@ -3,7 +3,7 @@ from form import views
 from django.contrib.staticfiles.urls import staticfiles_urlpatterns
 
 urlpatterns = [
-    path('', views.index, name='index'),
+    path('', views.login, name='login'),
     path('index/', views.index, name='index'),
     path('login/', views.login, name='login'),
     path('courses/', views.courses, name='courses'),
