@@ -1,0 +1,661 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<meta charset="UTF-8" />
+	<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+	<meta name="description" content="Application Form for Management Quota Seats for MAIT ">
+	<title>MAIT BTechLE Application</title>
+	<link rel="stylesheet" href="../../static/output_btech.css">
+	<link rel="shortcut icon" href="/static/media/logo.png" type="image/x-icon">
+	<link rel="preconnect" href="https://fonts.googleapis.com">
+	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+	<link href="https://fonts.googleapis.com/css2?family=Roboto&display=swap" rel="stylesheet">
+	<link href="https://fonts.googleapis.com/css2?family=Montserrat&display=swap" rel="stylesheet">
+	<link href="https://fonts.googleapis.com/css2?family=Oswald&display=swap" rel="stylesheet">
+</head>
+
+
+<body>
+
+	<!-- Main Header Starts -->
+	<div class="header bg-blue-950 flex shadow shadow-black">
+		<img class="w-[250px] sm:w-[250px]" src="../../static/media/maitlogomain.png" alt="MAIT" />
+		<p class="font-semibold mx-5 text-2xl sm:text-5xl text-white">
+			B.Tech. LE Application Form
+		</p>
+	</div>
+	<!-- Main Header Ends -->
+	<!-- If user tries to go to payment without filling this tab -->
+	{% if messages %}
+		{% for message in messages %}
+			{% if message.tags %}  <script>alert("{{ message }}")</script> {% endif %}
+		{% endfor %}
+	{% endif %}
+    <!-- Outermost Div Starts -->
+	<div class="outermost-div bg-blue-100">
+		<!-- Main Card Starts -->
+		<div class="flex main-card w-[90%]  m-auto lg:flex-row flex-col  bg-gray-100 px-5">
+
+            <!-- Progress Bar Starts -->
+			<div class="form-fields lg:mr-16 flex gap-2 flex-col top-0 h-[50%] relative lg:sticky pt-10">
+				<!-- we will check one field of each tag -->
+				<!-- if that field is filled then we will make border green, otherwise it will remian black -->
+				<!-- Checking first tab by candidate_first_name -->
+				{% if record.candidate_first_name %}
+					<a href="/btechle1/">
+						<p class="semibold text-sm font-medium border-b-2 border-green py-2 hover:cursor-pointer hover:text-blue-900">
+						Candidate Details &#10004;</p>
+					</a>
+				{% else %}
+					<a href="/btechle1/">
+						<p class="semibold text-sm font-medium border-b-2 border-black py-2 hover:cursor-pointer hover:text-blue-900">
+						Candidate Details</p>
+					</a>
+				{% endif %}
+				<!-- Checking second tab by father_first_name -->
+				{% if record.father_first_name %}
+					<a href="/btechle2/">
+					<p class="semibold text-sm font-medium border-b-2 border-green py-2 hover:cursor-pointer hover:text-blue-900">
+						Parent and Guardian Details &#10004;</p>
+					</a>
+				{% else %}
+					<a href="/btechle2/">
+						<p class="semibold text-sm font-medium border-b-2 border-black py-2 hover:cursor-pointer hover:text-blue-900">
+							Parent and Guardian Details</p>
+					</a>
+				{% endif %}
+				<!-- Checking third tab by board_12th -->
+				{% if record.board_10th %}
+					<a href="/btechle3/">
+					<p class="semibold text-sm font-medium border-b-2 border-green py-2 hover:cursor-pointer hover:text-blue-900">
+						Educational Details &#10004;</p>
+					</a>
+				{% else %}
+					<a href="/btechle3/">
+					<p class="semibold text-sm font-medium border-b-2 border-black py-2 hover:cursor-pointer hover:text-blue-900">
+						Educational Details</p>
+					</a>
+				{% endif %}
+				<!-- Checking fourth tab by jee_rollno -->
+				{% if record.cet_rollno %}
+					<a href="/btechle4/">
+					<p class="semibold text-sm font-medium border-b-2 border-green py-2 hover:cursor-pointer hover:text-blue-900">
+						Qualification and Eligibility &#10004;</p>
+					</a>
+				{% else %}
+					<a href="/btechle4/">
+					<p class="semibold text-sm font-medium border-b-2 border-black py-2 hover:cursor-pointer hover:text-blue-900">
+						Qualification and Eligibility</p>
+					</a>
+				{% endif %}
+				<!-- Checking fifth tab by preference1 -->
+				{% if record.preference1 %}
+					<a href="/btechle5/">
+					<p class="semibold text-sm font-medium border-b-2 border-green py-2 hover:cursor-pointer hover:text-blue-900">
+						Choice of Programme &#10004;</p>
+					</a>
+				{% else %}
+					<a href="/btechle5/">
+					<p class="semibold text-sm font-medium border-b-2 border-black py-2 hover:cursor-pointer hover:text-blue-900">
+						Choice of Programme</p>
+					</a>
+				{% endif %}
+				<!-- Checking Sixth tab by passport_photo -->
+				{% if record.passport_photo %}
+					<a href="/btechle6/">
+					<p class="semibold text-sm font-medium border-b-2 border-green py-2 hover:cursor-pointer hover:text-blue-900">
+						Documents &#10004;</p>
+					</a>
+				{% else %}
+					<a href="/btechle6/">
+					<p class="semibold text-sm font-medium border-b-2 border-black py-2 hover:cursor-pointer hover:text-blue-900">
+						Documents</p>
+					</a>
+				{% endif %}
+				<a href="/btechle7/">
+				<p class="semibold text-sm font-medium border-b-2 border-black py-2 hover:cursor-pointer hover:text-blue-900">
+					Payment</p>
+				</a>
+			</div>
+			<!-- Progress Bar Ends -->
+
+            <!-- FORM starts -->
+			<form action="/btechle5/" method="post" id="myForm" enctype="multipart/form-data">
+				{% csrf_token %}
+
+                <div class="form m-auto pt-2 pl-5">
+                    <h1 class="text-red-600 text-3xl font-medium">
+						Application form for Management Quota Seats : B.Tech. LE 2023-24
+					</h1>
+					<p class="centered" style="color: #8597a3;">(Fields marked with * are mandatory)</p>
+					<br>
+
+					<!-- Fifth Tab to be displayed: Preferences/Choices -->
+					<br>
+					<div class="tab">
+						<div class="choice-programme">
+							<p class="text-xl mb-3 text-red-600 font-medium">9. Indicate the choice of B.TECH. LE
+								Programme preference
+								wise*</p>
+							<div class="flex flex-col gap-2 w-[200px] sm:w-[500px]">
+								<select name="preference1"
+									class="px-2 py-1 mx-5 bg-slate-200 text-gray-700 placeholder:text-gray-400 border-blue-700 rounded-sm border-2 placeholder:text-sm h-10"
+									required onchange="onSelectChange(this)">
+									{% if record.preference1 %} 
+										<option value="{{record.preference1}}" selected>{{record.preference1}}</option>
+									{% else %}
+										<option value="preference1" selected>Select Preference 1*</option> 
+									{% endif %}
+									<option value="COMPUTER SCIENCE AND ENGINEERING">COMPUTER SCIENCE AND ENGINEERING
+									</option>
+									<option
+										value="COMPUTER SCIENCE AND ENGINEERING (ARTIFICIAL INTELLIGENCE AND MACHINE LEARNING)">
+										COMPUTER
+										SCIENCE AND ENGINEERING (ARTIFICIAL INTELLIGENCE AND MACHINE LEARNING)</option>
+									<option value="COMPUTER SCIENCE AND ENGINEERING (ARTIFICIAL INTELLIGENCE)">COMPUTER
+										SCIENCE AND
+										ENGINEERING (ARTIFICIAL INTELLIGENCE)</option>
+									<option value="COMPUTER SCIENCE AND ENGINEERING (DATA SCIENCE)">COMPUTER SCIENCE AND
+										ENGINEERING (DATA
+										SCIENCE)</option>
+									<option value="COMPUTER SCIENCE AND TECHNOLOGY">COMPUTER SCIENCE AND TECHNOLOGY
+									</option>
+									<option value="ELECTRICAL AND ELECTRONICS ENGINEERING">ELECTRICAL AND ELECTRONICS
+										ENGINEERING</option>
+									<option value="ELECTRONICS AND COMMUNICATIONS ENGINEERING">ELECTRONICS AND
+										COMMUNICATIONS ENGINEERING
+									</option>
+									<option value="INFORMATION TECHNOLOGY">INFORMATION TECHNOLOGY</option>
+									<option value="INFORMATION TECHNOLOGY AND ENGINEERING">INFORMATION TECHNOLOGY AND
+										ENGINEERING</option>
+									<option value="MECHANICAL AND AUTOMATION ENGINEERING">MECHANICAL AND AUTOMATION
+										ENGINEERING</option>
+									<option value="MECHANICAL ENGINEERING">MECHANICAL ENGINEERING</option>
+									<option value="ELECTRONICS ENGINEERING (VLSI DESIGN AND TECHNOLOGY)">ELECTRONICS
+										ENGINEERING (VLSI
+										DESIGN AND TECHNOLOGY)</option>
+									<option value="ELECTRONICS AND COMMUNICATION (ADVANCED COMMUNICATION TECHNOLOGY)">
+										ELECTRONICS AND
+										COMMUNICATION (ADVANCED COMMUNICATION TECHNOLOGY)</option>
+								</select>
+								<select name="preference2"
+									class="px-2 py-1 mx-5 bg-slate-200 text-gray-700 placeholder:text-gray-400 border-blue-700 rounded-sm border-2 placeholder:text-sm h-10"
+									required onchange="onSelectChange(this)">
+									{% if record.preference2 %} 
+										<option value="{{record.preference2}}" selected>{{record.preference2}}</option>
+									{% else %}
+										<option value="preference2" selected>Select Preference 2*</option> 
+									{% endif %}
+									<option value="COMPUTER SCIENCE AND ENGINEERING">COMPUTER SCIENCE AND ENGINEERING
+									</option>
+									<option
+										value="COMPUTER SCIENCE AND ENGINEERING (ARTIFICIAL INTELLIGENCE AND MACHINE LEARNING)">
+										COMPUTER
+										SCIENCE AND ENGINEERING (ARTIFICIAL INTELLIGENCE AND MACHINE LEARNING)</option>
+									<option value="COMPUTER SCIENCE AND ENGINEERING (ARTIFICIAL INTELLIGENCE)">COMPUTER
+										SCIENCE AND
+										ENGINEERING (ARTIFICIAL INTELLIGENCE)</option>
+									<option value="COMPUTER SCIENCE AND ENGINEERING (DATA SCIENCE)">COMPUTER SCIENCE AND
+										ENGINEERING (DATA
+										SCIENCE)</option>
+									<option value="COMPUTER SCIENCE AND TECHNOLOGY">COMPUTER SCIENCE AND TECHNOLOGY
+									</option>
+									<option value="ELECTRICAL AND ELECTRONICS ENGINEERING">ELECTRICAL AND ELECTRONICS
+										ENGINEERING</option>
+									<option value="ELECTRONICS AND COMMUNICATIONS ENGINEERING">ELECTRONICS AND
+										COMMUNICATIONS ENGINEERING
+									</option>
+									<option value="INFORMATION TECHNOLOGY">INFORMATION TECHNOLOGY</option>
+									<option value="INFORMATION TECHNOLOGY AND ENGINEERING">INFORMATION TECHNOLOGY AND
+										ENGINEERING</option>
+									<option value="MECHANICAL AND AUTOMATION ENGINEERING">MECHANICAL AND AUTOMATION
+										ENGINEERING</option>
+									<option value="MECHANICAL ENGINEERING">MECHANICAL ENGINEERING</option>
+									<option value="ELECTRONICS ENGINEERING (VLSI DESIGN AND TECHNOLOGY)">ELECTRONICS
+										ENGINEERING (VLSI
+										DESIGN AND TECHNOLOGY)</option>
+									<option value="ELECTRONICS AND COMMUNICATION (ADVANCED COMMUNICATION TECHNOLOGY)">
+										ELECTRONICS AND
+										COMMUNICATION (ADVANCED COMMUNICATION TECHNOLOGY)</option>
+								</select>
+								<select name="preference3"
+									class="px-2 py-1 mx-5 bg-slate-200 text-gray-700 placeholder:text-gray-400 border-blue-700 rounded-sm border-2 placeholder:text-sm h-10"
+									required onchange="onSelectChange(this)">
+									{% if record.preference3 %} 
+										<option value="{{record.preference3}}" selected>{{record.preference3}}</option>
+									{% else %}
+										<option value="preference3" selected>Select Preference 3*</option> 
+									{% endif %}
+									<option value="COMPUTER SCIENCE AND ENGINEERING">COMPUTER SCIENCE AND ENGINEERING
+									</option>
+									<option
+										value="COMPUTER SCIENCE AND ENGINEERING (ARTIFICIAL INTELLIGENCE AND MACHINE LEARNING)">
+										COMPUTER
+										SCIENCE AND ENGINEERING (ARTIFICIAL INTELLIGENCE AND MACHINE LEARNING)</option>
+									<option value="COMPUTER SCIENCE AND ENGINEERING (ARTIFICIAL INTELLIGENCE)">COMPUTER
+										SCIENCE AND
+										ENGINEERING (ARTIFICIAL INTELLIGENCE)</option>
+									<option value="COMPUTER SCIENCE AND ENGINEERING (DATA SCIENCE)">COMPUTER SCIENCE AND
+										ENGINEERING (DATA
+										SCIENCE)</option>
+									<option value="COMPUTER SCIENCE AND TECHNOLOGY">COMPUTER SCIENCE AND TECHNOLOGY
+									</option>
+									<option value="ELECTRICAL AND ELECTRONICS ENGINEERING">ELECTRICAL AND ELECTRONICS
+										ENGINEERING</option>
+									<option value="ELECTRONICS AND COMMUNICATIONS ENGINEERING">ELECTRONICS AND
+										COMMUNICATIONS ENGINEERING
+									</option>
+									<option value="INFORMATION TECHNOLOGY">INFORMATION TECHNOLOGY</option>
+									<option value="INFORMATION TECHNOLOGY AND ENGINEERING">INFORMATION TECHNOLOGY AND
+										ENGINEERING</option>
+									<option value="MECHANICAL AND AUTOMATION ENGINEERING">MECHANICAL AND AUTOMATION
+										ENGINEERING</option>
+									<option value="MECHANICAL ENGINEERING">MECHANICAL ENGINEERING</option>
+									<option value="ELECTRONICS ENGINEERING (VLSI DESIGN AND TECHNOLOGY)">ELECTRONICS
+										ENGINEERING (VLSI
+										DESIGN AND TECHNOLOGY)</option>
+									<option value="ELECTRONICS AND COMMUNICATION (ADVANCED COMMUNICATION TECHNOLOGY)">
+										ELECTRONICS AND
+										COMMUNICATION (ADVANCED COMMUNICATION TECHNOLOGY)</option>
+								</select>
+								<select name="preference4"
+									class="px-2 py-1 mx-5 bg-slate-200 text-gray-700 placeholder:text-gray-400 border-blue-700 rounded-sm border-2 placeholder:text-sm h-10"
+									onchange="onSelectChange(this)">
+									{% if record.preference4 %} 
+										<option value="{{record.preference4}}" selected>{{record.preference4}}</option>
+									{% else %}
+										<option value="preference4" selected>Select Preference 4*</option> 
+									{% endif %}
+									<option value="COMPUTER SCIENCE AND ENGINEERING">COMPUTER SCIENCE AND ENGINEERING
+									</option>
+									<option
+										value="COMPUTER SCIENCE AND ENGINEERING (ARTIFICIAL INTELLIGENCE AND MACHINE LEARNING)">
+										COMPUTER
+										SCIENCE AND ENGINEERING (ARTIFICIAL INTELLIGENCE AND MACHINE LEARNING)</option>
+									<option value="COMPUTER SCIENCE AND ENGINEERING (ARTIFICIAL INTELLIGENCE)">COMPUTER
+										SCIENCE AND
+										ENGINEERING (ARTIFICIAL INTELLIGENCE)</option>
+									<option value="COMPUTER SCIENCE AND ENGINEERING (DATA SCIENCE)">COMPUTER SCIENCE AND
+										ENGINEERING (DATA
+										SCIENCE)</option>
+									<option value="COMPUTER SCIENCE AND TECHNOLOGY">COMPUTER SCIENCE AND TECHNOLOGY
+									</option>
+									<option value="ELECTRICAL AND ELECTRONICS ENGINEERING">ELECTRICAL AND ELECTRONICS
+										ENGINEERING</option>
+									<option value="ELECTRONICS AND COMMUNICATIONS ENGINEERING">ELECTRONICS AND
+										COMMUNICATIONS ENGINEERING
+									</option>
+									<option value="INFORMATION TECHNOLOGY">INFORMATION TECHNOLOGY</option>
+									<option value="INFORMATION TECHNOLOGY AND ENGINEERING">INFORMATION TECHNOLOGY AND
+										ENGINEERING</option>
+									<option value="MECHANICAL AND AUTOMATION ENGINEERING">MECHANICAL AND AUTOMATION
+										ENGINEERING</option>
+									<option value="MECHANICAL ENGINEERING">MECHANICAL ENGINEERING</option>
+									<option value="ELECTRONICS ENGINEERING (VLSI DESIGN AND TECHNOLOGY)">ELECTRONICS
+										ENGINEERING (VLSI
+										DESIGN AND TECHNOLOGY)</option>
+									<option value="ELECTRONICS AND COMMUNICATION (ADVANCED COMMUNICATION TECHNOLOGY)">
+										ELECTRONICS AND
+										COMMUNICATION (ADVANCED COMMUNICATION TECHNOLOGY)</option>
+								</select>
+								<select name="preference5"
+									class="px-2 py-1 mx-5 bg-slate-200 text-gray-700 placeholder:text-gray-400 border-blue-700 rounded-sm border-2 placeholder:text-sm h-10"
+									onchange="onSelectChange(this)">
+									{% if record.preference5 %} 
+										<option value="{{record.preference5}}" selected>{{record.preference5}}</option>
+									{% else %}
+										<option value="preference5" selected>Select Preference 5*</option> 
+									{% endif %}
+									<option value="COMPUTER SCIENCE AND ENGINEERING">COMPUTER SCIENCE AND ENGINEERING
+									</option>
+									<option
+										value="COMPUTER SCIENCE AND ENGINEERING (ARTIFICIAL INTELLIGENCE AND MACHINE LEARNING)">
+										COMPUTER
+										SCIENCE AND ENGINEERING (ARTIFICIAL INTELLIGENCE AND MACHINE LEARNING)</option>
+									<option value="COMPUTER SCIENCE AND ENGINEERING (ARTIFICIAL INTELLIGENCE)">COMPUTER
+										SCIENCE AND
+										ENGINEERING (ARTIFICIAL INTELLIGENCE)</option>
+									<option value="COMPUTER SCIENCE AND ENGINEERING (DATA SCIENCE)">COMPUTER SCIENCE AND
+										ENGINEERING (DATA
+										SCIENCE)</option>
+									<option value="COMPUTER SCIENCE AND TECHNOLOGY">COMPUTER SCIENCE AND TECHNOLOGY
+									</option>
+									<option value="ELECTRICAL AND ELECTRONICS ENGINEERING">ELECTRICAL AND ELECTRONICS
+										ENGINEERING</option>
+									<option value="ELECTRONICS AND COMMUNICATIONS ENGINEERING">ELECTRONICS AND
+										COMMUNICATIONS ENGINEERING
+									</option>
+									<option value="INFORMATION TECHNOLOGY">INFORMATION TECHNOLOGY</option>
+									<option value="INFORMATION TECHNOLOGY AND ENGINEERING">INFORMATION TECHNOLOGY AND
+										ENGINEERING</option>
+									<option value="MECHANICAL AND AUTOMATION ENGINEERING">MECHANICAL AND AUTOMATION
+										ENGINEERING</option>
+									<option value="MECHANICAL ENGINEERING">MECHANICAL ENGINEERING</option>
+									<option value="ELECTRONICS ENGINEERING (VLSI DESIGN AND TECHNOLOGY)">ELECTRONICS
+										ENGINEERING (VLSI
+										DESIGN AND TECHNOLOGY)</option>
+									<option value="ELECTRONICS AND COMMUNICATION (ADVANCED COMMUNICATION TECHNOLOGY)">
+										ELECTRONICS AND
+										COMMUNICATION (ADVANCED COMMUNICATION TECHNOLOGY)</option>
+								</select>
+								<select name="preference6"
+									class="px-2 py-1 mx-5 bg-slate-200 text-gray-700 placeholder:text-gray-400 border-blue-700 rounded-sm border-2 placeholder:text-sm h-10"
+									onchange="onSelectChange(this)">
+									{% if record.preference6 %} 
+										<option value="{{record.preference6}}" selected>{{record.preference6}}</option>
+									{% else %}
+										<option value="preference6" selected>Select Preference 6*</option> 
+									{% endif %}
+									<option value="COMPUTER SCIENCE AND ENGINEERING">COMPUTER SCIENCE AND ENGINEERING
+									</option>
+									<option
+										value="COMPUTER SCIENCE AND ENGINEERING (ARTIFICIAL INTELLIGENCE AND MACHINE LEARNING)">
+										COMPUTER
+										SCIENCE AND ENGINEERING (ARTIFICIAL INTELLIGENCE AND MACHINE LEARNING)</option>
+									<option value="COMPUTER SCIENCE AND ENGINEERING (ARTIFICIAL INTELLIGENCE)">COMPUTER
+										SCIENCE AND
+										ENGINEERING (ARTIFICIAL INTELLIGENCE)</option>
+									<option value="COMPUTER SCIENCE AND ENGINEERING (DATA SCIENCE)">COMPUTER SCIENCE AND
+										ENGINEERING (DATA
+										SCIENCE)</option>
+									<option value="COMPUTER SCIENCE AND TECHNOLOGY">COMPUTER SCIENCE AND TECHNOLOGY
+									</option>
+									<option value="ELECTRICAL AND ELECTRONICS ENGINEERING">ELECTRICAL AND ELECTRONICS
+										ENGINEERING</option>
+									<option value="ELECTRONICS AND COMMUNICATIONS ENGINEERING">ELECTRONICS AND
+										COMMUNICATIONS ENGINEERING
+									</option>
+									<option value="INFORMATION TECHNOLOGY">INFORMATION TECHNOLOGY</option>
+									<option value="INFORMATION TECHNOLOGY AND ENGINEERING">INFORMATION TECHNOLOGY AND
+										ENGINEERING</option>
+									<option value="MECHANICAL AND AUTOMATION ENGINEERING">MECHANICAL AND AUTOMATION
+										ENGINEERING</option>
+									<option value="MECHANICAL ENGINEERING">MECHANICAL ENGINEERING</option>
+									<option value="ELECTRONICS ENGINEERING (VLSI DESIGN AND TECHNOLOGY)">ELECTRONICS
+										ENGINEERING (VLSI
+										DESIGN AND TECHNOLOGY)</option>
+									<option value="ELECTRONICS AND COMMUNICATION (ADVANCED COMMUNICATION TECHNOLOGY)">
+										ELECTRONICS AND
+										COMMUNICATION (ADVANCED COMMUNICATION TECHNOLOGY)</option>
+								</select>
+								<select name="preference7"
+									class="px-2 py-1 mx-5 bg-slate-200 text-gray-700 placeholder:text-gray-400 border-blue-700 rounded-sm border-2 placeholder:text-sm h-10"
+									onchange="onSelectChange(this)">
+									{% if record.preference7 %} 
+										<option value="{{record.preference7}}" selected>{{record.preference7}}</option>
+									{% else %}
+										<option value="preference7" selected>Select Preference 7*</option> 
+									{% endif %}
+									<option value="COMPUTER SCIENCE AND ENGINEERING">COMPUTER SCIENCE AND ENGINEERING
+									</option>
+									<option
+										value="COMPUTER SCIENCE AND ENGINEERING (ARTIFICIAL INTELLIGENCE AND MACHINE LEARNING)">
+										COMPUTER
+										SCIENCE AND ENGINEERING (ARTIFICIAL INTELLIGENCE AND MACHINE LEARNING)</option>
+									<option value="COMPUTER SCIENCE AND ENGINEERING (ARTIFICIAL INTELLIGENCE)">COMPUTER
+										SCIENCE AND
+										ENGINEERING (ARTIFICIAL INTELLIGENCE)</option>
+									<option value="COMPUTER SCIENCE AND ENGINEERING (DATA SCIENCE)">COMPUTER SCIENCE AND
+										ENGINEERING (DATA
+										SCIENCE)</option>
+									<option value="COMPUTER SCIENCE AND TECHNOLOGY">COMPUTER SCIENCE AND TECHNOLOGY
+									</option>
+									<option value="ELECTRICAL AND ELECTRONICS ENGINEERING">ELECTRICAL AND ELECTRONICS
+										ENGINEERING</option>
+									<option value="ELECTRONICS AND COMMUNICATIONS ENGINEERING">ELECTRONICS AND
+										COMMUNICATIONS ENGINEERING
+									</option>
+									<option value="INFORMATION TECHNOLOGY">INFORMATION TECHNOLOGY</option>
+									<option value="INFORMATION TECHNOLOGY AND ENGINEERING">INFORMATION TECHNOLOGY AND
+										ENGINEERING</option>
+									<option value="MECHANICAL AND AUTOMATION ENGINEERING">MECHANICAL AND AUTOMATION
+										ENGINEERING</option>
+									<option value="MECHANICAL ENGINEERING">MECHANICAL ENGINEERING</option>
+									<option value="ELECTRONICS ENGINEERING (VLSI DESIGN AND TECHNOLOGY)">ELECTRONICS
+										ENGINEERING (VLSI
+										DESIGN AND TECHNOLOGY)</option>
+									<option value="ELECTRONICS AND COMMUNICATION (ADVANCED COMMUNICATION TECHNOLOGY)">
+										ELECTRONICS AND
+										COMMUNICATION (ADVANCED COMMUNICATION TECHNOLOGY)</option>
+								</select>
+								<select name="preference8"
+									class="px-2 py-1 mx-5 bg-slate-200 text-gray-700 placeholder:text-gray-400 border-blue-700 rounded-sm border-2 placeholder:text-sm h-10"
+									onchange="onSelectChange(this)">
+									{% if record.preference8 %} 
+										<option value="{{record.preference8}}" selected>{{record.preference8}}</option>
+									{% else %}
+										<option value="preference8" selected>Select Preference 8*</option> 
+									{% endif %}
+									<option value="COMPUTER SCIENCE AND ENGINEERING">COMPUTER SCIENCE AND ENGINEERING
+									</option>
+									<option
+										value="COMPUTER SCIENCE AND ENGINEERING (ARTIFICIAL INTELLIGENCE AND MACHINE LEARNING)">
+										COMPUTER
+										SCIENCE AND ENGINEERING (ARTIFICIAL INTELLIGENCE AND MACHINE LEARNING)</option>
+									<option value="COMPUTER SCIENCE AND ENGINEERING (ARTIFICIAL INTELLIGENCE)">COMPUTER
+										SCIENCE AND
+										ENGINEERING (ARTIFICIAL INTELLIGENCE)</option>
+									<option value="COMPUTER SCIENCE AND ENGINEERING (DATA SCIENCE)">COMPUTER SCIENCE AND
+										ENGINEERING (DATA
+										SCIENCE)</option>
+									<option value="COMPUTER SCIENCE AND TECHNOLOGY">COMPUTER SCIENCE AND TECHNOLOGY
+									</option>
+									<option value="ELECTRICAL AND ELECTRONICS ENGINEERING">ELECTRICAL AND ELECTRONICS
+										ENGINEERING</option>
+									<option value="ELECTRONICS AND COMMUNICATIONS ENGINEERING">ELECTRONICS AND
+										COMMUNICATIONS ENGINEERING
+									</option>
+									<option value="INFORMATION TECHNOLOGY">INFORMATION TECHNOLOGY</option>
+									<option value="INFORMATION TECHNOLOGY AND ENGINEERING">INFORMATION TECHNOLOGY AND
+										ENGINEERING</option>
+									<option value="MECHANICAL AND AUTOMATION ENGINEERING">MECHANICAL AND AUTOMATION
+										ENGINEERING</option>
+									<option value="MECHANICAL ENGINEERING">MECHANICAL ENGINEERING</option>
+									<option value="ELECTRONICS ENGINEERING (VLSI DESIGN AND TECHNOLOGY)">ELECTRONICS
+										ENGINEERING (VLSI
+										DESIGN AND TECHNOLOGY)</option>
+									<option value="ELECTRONICS AND COMMUNICATION (ADVANCED COMMUNICATION TECHNOLOGY)">
+										ELECTRONICS AND
+										COMMUNICATION (ADVANCED COMMUNICATION TECHNOLOGY)</option>
+								</select>
+								<select name="preference9"
+									class="px-2 py-1 mx-5 bg-slate-200 text-gray-700 placeholder:text-gray-400 border-blue-700 rounded-sm border-2 placeholder:text-sm h-10"
+									onchange="onSelectChange(this)">
+									{% if record.preference9 %} 
+										<option value="{{record.preference9}}" selected>{{record.preference9}}</option>
+									{% else %}
+										<option value="preference9" selected>Select Preference 9*</option> 
+									{% endif %}
+									<option value="COMPUTER SCIENCE AND ENGINEERING">COMPUTER SCIENCE AND ENGINEERING
+									</option>
+									<option
+										value="COMPUTER SCIENCE AND ENGINEERING (ARTIFICIAL INTELLIGENCE AND MACHINE LEARNING)">
+										COMPUTER
+										SCIENCE AND ENGINEERING (ARTIFICIAL INTELLIGENCE AND MACHINE LEARNING)</option>
+									<option value="COMPUTER SCIENCE AND ENGINEERING (ARTIFICIAL INTELLIGENCE)">COMPUTER
+										SCIENCE AND
+										ENGINEERING (ARTIFICIAL INTELLIGENCE)</option>
+									<option value="COMPUTER SCIENCE AND ENGINEERING (DATA SCIENCE)">COMPUTER SCIENCE AND
+										ENGINEERING (DATA
+										SCIENCE)</option>
+									<option value="COMPUTER SCIENCE AND TECHNOLOGY">COMPUTER SCIENCE AND TECHNOLOGY
+									</option>
+									<option value="ELECTRICAL AND ELECTRONICS ENGINEERING">ELECTRICAL AND ELECTRONICS
+										ENGINEERING</option>
+									<option value="ELECTRONICS AND COMMUNICATIONS ENGINEERING">ELECTRONICS AND
+										COMMUNICATIONS ENGINEERING
+									</option>
+									<option value="INFORMATION TECHNOLOGY">INFORMATION TECHNOLOGY</option>
+									<option value="INFORMATION TECHNOLOGY AND ENGINEERING">INFORMATION TECHNOLOGY AND
+										ENGINEERING</option>
+									<option value="MECHANICAL AND AUTOMATION ENGINEERING">MECHANICAL AND AUTOMATION
+										ENGINEERING</option>
+									<option value="MECHANICAL ENGINEERING">MECHANICAL ENGINEERING</option>
+									<option value="ELECTRONICS ENGINEERING (VLSI DESIGN AND TECHNOLOGY)">ELECTRONICS
+										ENGINEERING (VLSI
+										DESIGN AND TECHNOLOGY)</option>
+									<option value="ELECTRONICS AND COMMUNICATION (ADVANCED COMMUNICATION TECHNOLOGY)">
+										ELECTRONICS AND
+										COMMUNICATION (ADVANCED COMMUNICATION TECHNOLOGY)</option>
+								</select>
+								<select name="preference10"
+									class="px-2 py-1 mx-5 bg-slate-200 text-gray-700 placeholder:text-gray-400 border-blue-700 rounded-sm border-2 placeholder:text-sm h-10"
+									onchange="onSelectChange(this)">
+									{% if record.preference10 %} 
+										<option value="{{record.preference10}}" selected>{{record.preference10}}</option>
+									{% else %}
+										<option value="preference10" selected>Select Preference 10*</option> 
+									{% endif %}
+									<option value="COMPUTER SCIENCE AND ENGINEERING">COMPUTER SCIENCE AND ENGINEERING
+									</option>
+									<option
+										value="COMPUTER SCIENCE AND ENGINEERING (ARTIFICIAL INTELLIGENCE AND MACHINE LEARNING)">
+										COMPUTER
+										SCIENCE AND ENGINEERING (ARTIFICIAL INTELLIGENCE AND MACHINE LEARNING)</option>
+									<option value="COMPUTER SCIENCE AND ENGINEERING (ARTIFICIAL INTELLIGENCE)">COMPUTER
+										SCIENCE AND
+										ENGINEERING (ARTIFICIAL INTELLIGENCE)</option>
+									<option value="COMPUTER SCIENCE AND ENGINEERING (DATA SCIENCE)">COMPUTER SCIENCE AND
+										ENGINEERING (DATA
+										SCIENCE)</option>
+									<option value="COMPUTER SCIENCE AND TECHNOLOGY">COMPUTER SCIENCE AND TECHNOLOGY
+									</option>
+									<option value="ELECTRICAL AND ELECTRONICS ENGINEERING">ELECTRICAL AND ELECTRONICS
+										ENGINEERING</option>
+									<option value="ELECTRONICS AND COMMUNICATIONS ENGINEERING">ELECTRONICS AND
+										COMMUNICATIONS ENGINEERING
+									</option>
+									<option value="INFORMATION TECHNOLOGY">INFORMATION TECHNOLOGY</option>
+									<option value="INFORMATION TECHNOLOGY AND ENGINEERING">INFORMATION TECHNOLOGY AND
+										ENGINEERING</option>
+									<option value="MECHANICAL AND AUTOMATION ENGINEERING">MECHANICAL AND AUTOMATION
+										ENGINEERING</option>
+									<option value="MECHANICAL ENGINEERING">MECHANICAL ENGINEERING</option>
+									<option value="ELECTRONICS ENGINEERING (VLSI DESIGN AND TECHNOLOGY)">ELECTRONICS
+										ENGINEERING (VLSI
+										DESIGN AND TECHNOLOGY)</option>
+									<option value="ELECTRONICS AND COMMUNICATION (ADVANCED COMMUNICATION TECHNOLOGY)">
+										ELECTRONICS AND
+										COMMUNICATION (ADVANCED COMMUNICATION TECHNOLOGY)</option>
+								</select>
+								<div id="error" class="error text-sm ml-5 font-semibold text-red-600"
+									style="display:block; color: #8597a3;">(Please Make Sure to select different values for different Preferences before Proceeding)</div>
+							</div>
+						</div>
+					</div>
+					<!-- Fifth Tab Ends Here -->
+					<!-- Save and Next Button -->
+					<div class="flex justify-between pt-9">
+						<button
+                            class="text-lg bg-slate-300 hover:bg-zinc-700 hover:text-zinc-400 hover:border-blue-600 border-2 px-4 py-1 border-black font-mono font-semibold text-blue-700 rounded-sm"
+                            id="nextBtn">
+                            Save and Next&rarr;
+                        </button>
+					</div>
+				</div>
+			</form>
+            <!-- FORM ends -->
+        </div>
+		<!-- Main Card ends -->
+	</div>
+	<!-- The outermost Div ends -->
+</body>
+
+
+<script>
+
+	// To convert each input with type text to uppercase
+    window.addEventListener('DOMContentLoaded', (event) => {
+        const textInputs = document.querySelectorAll('input[type="text"]');
+        
+        textInputs.forEach((input) => {
+          input.addEventListener('input', () => {
+            input.value = input.value.toUpperCase();
+          });
+        });
+      });
+
+	const select1 = document.getElementsByName('preference1')[0];
+	const select2 = document.getElementsByName('preference2')[0];
+	const select3 = document.getElementsByName('preference3')[0];
+	const select4 = document.getElementsByName('preference4')[0];
+	const select5 = document.getElementsByName('preference5')[0];
+	const select6 = document.getElementsByName('preference6')[0];
+	const select7 = document.getElementsByName('preference7')[0];
+	const select8 = document.getElementsByName('preference8')[0];
+	const select9 = document.getElementsByName('preference9')[0];
+	const select10 = document.getElementsByName('preference10')[0];
+	const error = document.getElementById('error');
+
+	function checkDuplicateOptions() {
+		const selectedOptions = [
+			select1.options[select1.selectedIndex].value,
+			select2.options[select2.selectedIndex].value,
+			select3.options[select3.selectedIndex].value,
+			select4.options[select1.selectedIndex].value,
+			select5.options[select2.selectedIndex].value,
+			select6.options[select3.selectedIndex].value,
+			select7.options[select1.selectedIndex].value,
+			select8.options[select2.selectedIndex].value,
+			select9.options[select3.selectedIndex].value,
+			select10.options[select1.selectedIndex].value
+		];
+
+		const uniqueOptions = new Set(selectedOptions);
+
+		if (uniqueOptions.size < 10) {
+			error.style.display = 'block';
+		} else {
+			error.style.display = 'none';
+		}
+	}
+
+	select1.addEventListener('change', checkDuplicateOptions);
+	select2.addEventListener('change', checkDuplicateOptions);
+	select3.addEventListener('change', checkDuplicateOptions);
+	select4.addEventListener('change', checkDuplicateOptions);
+	select5.addEventListener('change', checkDuplicateOptions);
+	select6.addEventListener('change', checkDuplicateOptions);
+	select7.addEventListener('change', checkDuplicateOptions);
+	select8.addEventListener('change', checkDuplicateOptions);
+	select9.addEventListener('change', checkDuplicateOptions);
+	select10.addEventListener('change', checkDuplicateOptions);
+
+	function onSelectChange(selectedDropdown) {
+		// Get the selected option value
+		const selectedOption = selectedDropdown.value;
+		const defaultOptions = ["preference1", "preference2", "preference3", "preference4", "preference5", "preference6", "preference7", "preference8", "preference9",
+		"preference10"];
+
+		// Get the other dropdowns
+		const dropdowns = document.querySelectorAll('select');
+		
+		const selectedOptions = []
+		dropdowns.forEach((dropdown) => {
+			const selected = dropdown.value;
+			if (!defaultOptions.includes(selected)) {
+			    selectedOptions.push(selected)
+			}
+		});
+		
+		console.log(selectedOptions);
+        
+		// Iterate through the dropdowns
+		dropdowns.forEach((dropdown) => {
+			if (dropdown !== selectedDropdown) {
+				// Disable the selected option in other dropdowns
+				const options = dropdown.querySelectorAll('option');
+				options.forEach((option) => {
+					if (!defaultOptions.includes(option.value) && selectedOptions.includes(option.value)) {
+						option.hidden = true;
+					} else {
+						option.hidden = false;
+					}
+				});
+			}
+		});
+	}
+</script>
