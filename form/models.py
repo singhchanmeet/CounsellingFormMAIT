@@ -14,8 +14,8 @@ class Login(models.Model):
     candidate_email = models.EmailField(max_length=100, unique=False)
     candidate_mobile = models.PositiveBigIntegerField(unique=False)
     course = models.CharField(max_length=100, blank=True)     
-    ip_address = models.CharField(max_length=100)
-    created_at = models.DateTimeField(auto_now_add=True)
+    ip_address = models.CharField(max_length=100, blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True, blank=True, null=True)
 
     class Meta:
         verbose_name_plural = "Login"    #so that Django doesnt add the default 's' for plural in table name
@@ -133,10 +133,10 @@ class BtechTemp(models.Model):
     counselling_transaction_id = models.CharField(max_length=255, blank=True)
     counselling_transaction_proof = models.FileField(upload_to=utils.btech_counselling_transaction_rename, blank=True)
     # To track IP address and other information of users
-    ip_address = models.CharField(max_length=100, blank=True)
-    forwarded_address = models.CharField(max_length=255, blank=True)
-    browser_info = models.CharField(max_length=1000, blank=True)
-    created_at = models.CharField(max_length=255, blank=True)
+    ip_address = models.CharField(max_length=100, blank=True, null=True)
+    forwarded_address = models.CharField(max_length=255, blank=True, null=True)
+    browser_info = models.CharField(max_length=1000, blank=True, null=True)
+    created_at = models.CharField(max_length=255, blank=True, null=True)
 
     def __str__(self):         # for showing record by name in admin panel
         return (self.candidate_first_name+' '+self.candidate_last_name)
@@ -251,10 +251,10 @@ class Btech(models.Model):
     counselling_transaction_id = models.CharField(max_length=255, blank=True)
     counselling_transaction_proof = models.FileField(upload_to=utils.btech_counselling_transaction_rename, blank=True)
     # To track IP address and other information of users
-    ip_address = models.CharField(max_length=100, blank=True)
-    forwarded_address = models.CharField(max_length=255, blank=True)
-    browser_info = models.CharField(max_length=1000, blank=True)
-    created_at = models.CharField(max_length=255, blank=True)
+    ip_address = models.CharField(max_length=100, blank=True, null=True)
+    forwarded_address = models.CharField(max_length=255, blank=True, null=True)
+    browser_info = models.CharField(max_length=1000, blank=True, null=True)
+    created_at = models.CharField(max_length=255, blank=True, null=True)
 
     def __str__(self):         # for showing record by name in admin panel
         return (self.candidate_first_name+' '+self.candidate_last_name)
@@ -375,10 +375,10 @@ class BtechLETemp(models.Model):
     counselling_transaction_id = models.CharField(max_length=255, blank=True)
     counselling_transaction_proof = models.FileField(upload_to=utils.btech_counselling_transaction_rename, blank=True)
     # To track IP address and other information of users
-    ip_address = models.CharField(max_length=100, blank=True)
-    forwarded_address = models.CharField(max_length=255, blank=True)
-    browser_info = models.CharField(max_length=1000, blank=True)
-    created_at = models.CharField(max_length=255, blank=True)
+    ip_address = models.CharField(max_length=100, blank=True, null=True)
+    forwarded_address = models.CharField(max_length=255, blank=True, null=True)
+    browser_info = models.CharField(max_length=1000, blank=True, null=True)
+    created_at = models.CharField(max_length=255, blank=True, null=True)
 
     def __str__(self):         # for showing record by name in admin panel
         return (self.candidate_first_name+' '+self.candidate_last_name)
@@ -501,10 +501,10 @@ class BtechLE(models.Model):
     counselling_transaction_id = models.CharField(max_length=255, blank=True)
     counselling_transaction_proof = models.FileField(upload_to=utils.btechle_counselling_transaction_rename, blank=True)
     # To track IP address and other information of users
-    ip_address = models.CharField(max_length=100, blank=True)
-    forwarded_address = models.CharField(max_length=255, blank=True)
-    browser_info = models.CharField(max_length=1000, blank=True)
-    created_at = models.CharField(max_length=255, blank=True)
+    ip_address = models.CharField(max_length=100, blank=True, null=True)
+    forwarded_address = models.CharField(max_length=255, blank=True, null=True)
+    browser_info = models.CharField(max_length=1000, blank=True, null=True)
+    created_at = models.CharField(max_length=255, blank=True, null=True)
 
     def __str__(self):         # for showing record by name in admin panel
         return (self.candidate_first_name+' '+self.candidate_last_name)
@@ -604,10 +604,10 @@ class BbaTemp(models.Model):
     counselling_transaction_id = models.CharField(max_length=255, blank=True)
     counselling_transaction_proof = models.FileField(upload_to=utils.bba_counselling_transaction_rename, blank=True)
     # To track IP address and other information of users
-    ip_address = models.CharField(max_length=100, blank=True)
-    forwarded_address = models.CharField(max_length=255, blank=True)
-    browser_info = models.CharField(max_length=1000, blank=True)
-    created_at = models.CharField(max_length=255, blank=True)
+    ip_address = models.CharField(max_length=100, blank=True, null=True)
+    forwarded_address = models.CharField(max_length=255, blank=True, null=True)
+    browser_info = models.CharField(max_length=1000, blank=True, null=True)
+    created_at = models.CharField(max_length=255, blank=True, null=True)
 
     def __str__(self):         # for showing record by name in admin panel
         return (self.candidate_first_name+' '+self.candidate_last_name)
@@ -708,10 +708,10 @@ class Bba(models.Model):
     counselling_transaction_id = models.CharField(max_length=255, blank=True)
     counselling_transaction_proof = models.FileField(upload_to=utils.bba_counselling_transaction_rename, blank=True)
     # To track IP address and other information of users
-    ip_address = models.CharField(max_length=100, blank=True)
-    forwarded_address = models.CharField(max_length=255, blank=True)
-    browser_info = models.CharField(max_length=1000, blank=True)
-    created_at = models.CharField(max_length=255, blank=True)
+    ip_address = models.CharField(max_length=100, blank=True, null=True)
+    forwarded_address = models.CharField(max_length=255, blank=True, null=True)
+    browser_info = models.CharField(max_length=1000, blank=True, null=True)
+    created_at = models.CharField(max_length=255, blank=True, null=True)
 
     def __str__(self):         # for showing record by name in admin panel
         return (self.candidate_first_name+' '+self.candidate_last_name)
@@ -820,10 +820,10 @@ class MbaTemp(models.Model):
     counselling_transaction_id = models.CharField(max_length=255, blank=True)
     counselling_transaction_proof = models.FileField(upload_to=utils.mba_counselling_transaction_rename, blank=True)
     # To track IP address and other information of users
-    ip_address = models.CharField(max_length=100, blank=True)
-    forwarded_address = models.CharField(max_length=255, blank=True)
-    browser_info = models.CharField(max_length=1000, blank=True)
-    created_at = models.CharField(max_length=255, blank=True)
+    ip_address = models.CharField(max_length=100, blank=True, null=True)
+    forwarded_address = models.CharField(max_length=255, blank=True, null=True)
+    browser_info = models.CharField(max_length=1000, blank=True, null=True)
+    created_at = models.CharField(max_length=255, blank=True, null=True)
 
     def __str__(self):         # for showing record by name in admin panel
         return (self.candidate_first_name+' '+self.candidate_last_name)
@@ -932,10 +932,10 @@ class Mba(models.Model):
     counselling_transaction_id = models.CharField(max_length=255, blank=True)
     counselling_transaction_proof = models.FileField(upload_to=utils.mba_counselling_transaction_rename, blank=True)
     # To track IP address and other information of users
-    ip_address = models.CharField(max_length=100, blank=True)
-    forwarded_address = models.CharField(max_length=255, blank=True)
-    browser_info = models.CharField(max_length=1000, blank=True)
-    created_at = models.CharField(max_length=255, blank=True)
+    ip_address = models.CharField(max_length=100, blank=True, null=True)
+    forwarded_address = models.CharField(max_length=255, blank=True, null=True)
+    browser_info = models.CharField(max_length=1000, blank=True, null=True)
+    created_at = models.CharField(max_length=255, blank=True, null=True)
 
     def __str__(self):         # for showing record by name in admin panel
         return (self.candidate_first_name+' '+self.candidate_last_name)
