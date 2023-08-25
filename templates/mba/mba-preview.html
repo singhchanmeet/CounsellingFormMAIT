@@ -35,6 +35,12 @@
                 <h1 class="input-label-main text-red-600 text-xl font-medium">GGSIPU Registration No. : {{record.ipu_registration}}
                 </h1>
             </div><br>
+            {% if record.counselling_transaction_id %}
+            <div class="centered">
+                <h1 class="input-label-main text-red-600 text-xl font-medium">Counselling Fee Transaction ID: {{record.counselling_transaction_id}}
+                </h1><h1 class="input-label-main text-red-600 text-xl font-medium ml-10"></h1><a target="_blank" class="underline" style="color: blue;" href="{{ record.counselling_transaction_proof.url }}">Counselling Fee Proof<a> <br>
+            </div>
+            {% endif %}
             {% comment %} FORM Starts {% endcomment %}
             <form class="card-form" method="post">
                 {% csrf_token %}
