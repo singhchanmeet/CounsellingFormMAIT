@@ -1,5 +1,5 @@
 from django.contrib import admin
-from form.models import Btech, BtechTemp, AllowedIP, Login, BtechLE, BtechLETemp, Bba, BbaTemp, Mba, MbaTemp
+from form.models import Btech, BtechTemp, AllowedIP, Login, BtechLE, BtechLETemp, Bba, BbaTemp, Mba, MbaTemp, BankDetails
 from import_export.admin import ExportActionMixin
 from django.shortcuts import render
 from django.contrib.sessions.models import Session
@@ -353,6 +353,12 @@ class LoginAdmin(ExportActionMixin, admin.ModelAdmin):
     search_fields = ['ipu_registration',]
 
 
+# For bank details
+class BankDetailsAdmin(ExportActionMixin, admin.ModelAdmin):
+    list_display = ('ipu_registration','course', 'account_number','account_holder_name')
+    list_filter = ['course']         #for adding filter option
+
+
 # register method takes at most 2 arguements at a time
 admin.site.register(BtechTemp, BtechTempAdmin)
 admin.site.register(Btech, BtechAdmin)
@@ -368,8 +374,11 @@ admin.site.register(Mba, MbaAdmin)
 
 admin.site.register(Login, LoginAdmin)
 
+admin.site.register(BankDetails, BankDetailsAdmin)
+
 admin.site.register(AllowedIP)
 admin.site.register(Session)
+
 
 admin.site.site_header = "MAIT Admin"
 admin.site.site_title = "Admin Portal"

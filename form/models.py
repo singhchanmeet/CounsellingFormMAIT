@@ -33,6 +33,22 @@ class AllowedIP(models.Model):
         db_table = "allowed_ip_addresses"
 
 
+# For storing bank details
+class BankDetails(models.Model):
+    ipu_registration = models.PositiveBigIntegerField(unique=True)
+    course = models.CharField(max_length=25)
+    account_holder_name = models.CharField(max_length=75)
+    account_number = models.CharField(max_length=50)
+    bank_name = models.CharField(max_length=100)
+    ifsc_code = models.CharField(max_length=50)
+    cheque_copy = models.FileField(upload_to=utils.cheque_rename, blank=True)
+
+    class Meta:
+        verbose_name_plural = "Bank Details"    #so that Django doesnt add the default 's' for plural in table name
+        db_table = "bank_details"
+
+
+
 
 
 # Btech Temporary Records Model:

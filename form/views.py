@@ -1,6 +1,6 @@
 from django.shortcuts import render, redirect
 import datetime
-from . models import Btech, BtechTemp, AllowedIP, Login, BtechLE, BtechLETemp, Bba, BbaTemp, Mba, MbaTemp
+from . models import Btech, BtechTemp, AllowedIP, Login, BtechLE, BtechLETemp, Bba, BbaTemp, Mba, MbaTemp, BankDetails
 from django.contrib import messages
 # For sending mails:
 from django.core.mail import send_mail
@@ -10,7 +10,10 @@ import secrets
 import string
 from django.db import IntegrityError
 
+import logging
 
+# This will log errors everytime there is a error in handling a request or rendering a response
+logger = logging.getLogger(__name__)
 
 
 # we are taking a flag variable named logged_in
@@ -75,8 +78,8 @@ def index(request):
         for ip in allowed_ips:
             allowed_ips_list.append(ip.ip_address)
         ip_address = request.META.get('REMOTE_ADDR')
-        if ip_address not in allowed_ips_list:
-            return render(request, 'index.html')
+        # if ip_address not in allowed_ips_list:
+        #     return render(request, 'index.html')
         candidate_name = request.POST.get('candidate_name')
         candidate_email = request.POST.get('candidate_email')
         candidate_mobile = request.POST.get('candidate_mobile')
@@ -131,8 +134,8 @@ def login(request):
         for ip in allowed_ips:
             allowed_ips_list.append(ip.ip_address)
         ip_address = request.META.get('REMOTE_ADDR')
-        if ip_address not in allowed_ips_list:
-            return render(request, 'login.html')
+        # if ip_address not in allowed_ips_list:
+        #     return render(request, 'login.html')
         global ipu_registration
         ipu_registration = request.POST.get('ipu_registration')
         user_pwd = request.POST.get('user_pwd')
@@ -286,9 +289,23 @@ def counselling(request):
         return redirect('login')
     # When POST, then simply save the two fields
     if request.method == "POST":
+        global course
+        global ipu_registration
         counselling_transaction_id = request.POST.get('counselling_transaction_id')
         counselling_transaction_proof = request.FILES['counselling_transaction_proof']
-        global course
+        # bank details
+        account_holder_name = request.POST.get('account_holder_name')
+        account_number = request.POST.get('account_number')
+        bank_name = request.POST.get('bank_name')
+        ifsc_code = request.POST.get('ifsc_code')
+        cheque_copy = request.FILES['cheque_copy']
+        # saving bank details
+        newobj = BankDetails(ipu_registration=ipu_registration,course=course, account_holder_name=account_holder_name, account_number=account_number,
+                             bank_name=bank_name, ifsc_code=ifsc_code, )
+        newobj.save()
+        # saving file after instance is created
+        newobj.cheque_copy = cheque_copy
+        newobj.save()
         if course == "Btech":
             record = Btech.objects.filter(application_id = application_id).first()
             record.counselling_transaction_id = counselling_transaction_id

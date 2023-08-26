@@ -8,3 +8,4 @@ MarkupSafe==2.1.2
 mysql-connector-python==8.0.33
 Pillow==9.4.0
 django-cleanup==7.0.0
+python-dotenv==1.0.0

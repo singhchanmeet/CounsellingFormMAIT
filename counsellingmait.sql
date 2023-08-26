@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Aug 18, 2023 at 11:44 PM
+-- Generation Time: Aug 25, 2023 at 08:51 PM
 -- Server version: 10.4.28-MariaDB
 -- PHP Version: 8.2.4
 
@@ -31,14 +31,6 @@ CREATE TABLE `allowed_ip_addresses` (
   `id` bigint(20) NOT NULL,
   `ip_address` varchar(100) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
---
--- Dumping data for table `allowed_ip_addresses`
---
-
-INSERT INTO `allowed_ip_addresses` (`id`, `ip_address`) VALUES
-(1, '127.0.0.1'),
-(2, '103.172.73.175');
 
 -- --------------------------------------------------------
 
@@ -89,62 +81,66 @@ INSERT INTO `auth_permission` (`id`, `name`, `content_type_id`, `codename`) VALU
 (6, 'Can change allowed ip', 2, 'change_allowedip'),
 (7, 'Can delete allowed ip', 2, 'delete_allowedip'),
 (8, 'Can view allowed ip', 2, 'view_allowedip'),
-(9, 'Can add btech temp', 3, 'add_btechtemp'),
-(10, 'Can change btech temp', 3, 'change_btechtemp'),
-(11, 'Can delete btech temp', 3, 'delete_btechtemp'),
-(12, 'Can view btech temp', 3, 'view_btechtemp'),
-(13, 'Can add btech', 4, 'add_btech'),
-(14, 'Can change btech', 4, 'change_btech'),
-(15, 'Can delete btech', 4, 'delete_btech'),
-(16, 'Can view btech', 4, 'view_btech'),
-(17, 'Can add btech le temp', 5, 'add_btechletemp'),
-(18, 'Can change btech le temp', 5, 'change_btechletemp'),
-(19, 'Can delete btech le temp', 5, 'delete_btechletemp'),
-(20, 'Can view btech le temp', 5, 'view_btechletemp'),
-(21, 'Can add btech le', 6, 'add_btechle'),
-(22, 'Can change btech le', 6, 'change_btechle'),
-(23, 'Can delete btech le', 6, 'delete_btechle'),
-(24, 'Can view btech le', 6, 'view_btechle'),
-(25, 'Can add bba temp', 7, 'add_bbatemp'),
-(26, 'Can change bba temp', 7, 'change_bbatemp'),
-(27, 'Can delete bba temp', 7, 'delete_bbatemp'),
-(28, 'Can view bba temp', 7, 'view_bbatemp'),
-(29, 'Can add bba', 8, 'add_bba'),
-(30, 'Can change bba', 8, 'change_bba'),
-(31, 'Can delete bba', 8, 'delete_bba'),
-(32, 'Can view bba', 8, 'view_bba'),
-(33, 'Can add mba temp', 9, 'add_mbatemp'),
-(34, 'Can change mba temp', 9, 'change_mbatemp'),
-(35, 'Can delete mba temp', 9, 'delete_mbatemp'),
-(36, 'Can view mba temp', 9, 'view_mbatemp'),
-(37, 'Can add mba', 10, 'add_mba'),
-(38, 'Can change mba', 10, 'change_mba'),
-(39, 'Can delete mba', 10, 'delete_mba'),
-(40, 'Can view mba', 10, 'view_mba'),
-(41, 'Can add log entry', 11, 'add_logentry'),
-(42, 'Can change log entry', 11, 'change_logentry'),
-(43, 'Can delete log entry', 11, 'delete_logentry'),
-(44, 'Can view log entry', 11, 'view_logentry'),
-(45, 'Can add permission', 12, 'add_permission'),
-(46, 'Can change permission', 12, 'change_permission'),
-(47, 'Can delete permission', 12, 'delete_permission'),
-(48, 'Can view permission', 12, 'view_permission'),
-(49, 'Can add group', 13, 'add_group'),
-(50, 'Can change group', 13, 'change_group'),
-(51, 'Can delete group', 13, 'delete_group'),
-(52, 'Can view group', 13, 'view_group'),
-(53, 'Can add user', 14, 'add_user'),
-(54, 'Can change user', 14, 'change_user'),
-(55, 'Can delete user', 14, 'delete_user'),
-(56, 'Can view user', 14, 'view_user'),
-(57, 'Can add content type', 15, 'add_contenttype'),
-(58, 'Can change content type', 15, 'change_contenttype'),
-(59, 'Can delete content type', 15, 'delete_contenttype'),
-(60, 'Can view content type', 15, 'view_contenttype'),
-(61, 'Can add session', 16, 'add_session'),
-(62, 'Can change session', 16, 'change_session'),
-(63, 'Can delete session', 16, 'delete_session'),
-(64, 'Can view session', 16, 'view_session');
+(9, 'Can add bank details', 3, 'add_bankdetails'),
+(10, 'Can change bank details', 3, 'change_bankdetails'),
+(11, 'Can delete bank details', 3, 'delete_bankdetails'),
+(12, 'Can view bank details', 3, 'view_bankdetails'),
+(13, 'Can add btech temp', 4, 'add_btechtemp'),
+(14, 'Can change btech temp', 4, 'change_btechtemp'),
+(15, 'Can delete btech temp', 4, 'delete_btechtemp'),
+(16, 'Can view btech temp', 4, 'view_btechtemp'),
+(17, 'Can add btech', 5, 'add_btech'),
+(18, 'Can change btech', 5, 'change_btech'),
+(19, 'Can delete btech', 5, 'delete_btech'),
+(20, 'Can view btech', 5, 'view_btech'),
+(21, 'Can add btech le temp', 6, 'add_btechletemp'),
+(22, 'Can change btech le temp', 6, 'change_btechletemp'),
+(23, 'Can delete btech le temp', 6, 'delete_btechletemp'),
+(24, 'Can view btech le temp', 6, 'view_btechletemp'),
+(25, 'Can add btech le', 7, 'add_btechle'),
+(26, 'Can change btech le', 7, 'change_btechle'),
+(27, 'Can delete btech le', 7, 'delete_btechle'),
+(28, 'Can view btech le', 7, 'view_btechle'),
+(29, 'Can add bba temp', 8, 'add_bbatemp'),
+(30, 'Can change bba temp', 8, 'change_bbatemp'),
+(31, 'Can delete bba temp', 8, 'delete_bbatemp'),
+(32, 'Can view bba temp', 8, 'view_bbatemp'),
+(33, 'Can add bba', 9, 'add_bba'),
+(34, 'Can change bba', 9, 'change_bba'),
+(35, 'Can delete bba', 9, 'delete_bba'),
+(36, 'Can view bba', 9, 'view_bba'),
+(37, 'Can add mba temp', 10, 'add_mbatemp'),
+(38, 'Can change mba temp', 10, 'change_mbatemp'),
+(39, 'Can delete mba temp', 10, 'delete_mbatemp'),
+(40, 'Can view mba temp', 10, 'view_mbatemp'),
+(41, 'Can add mba', 11, 'add_mba'),
+(42, 'Can change mba', 11, 'change_mba'),
+(43, 'Can delete mba', 11, 'delete_mba'),
+(44, 'Can view mba', 11, 'view_mba'),
+(45, 'Can add log entry', 12, 'add_logentry'),
+(46, 'Can change log entry', 12, 'change_logentry'),
+(47, 'Can delete log entry', 12, 'delete_logentry'),
+(48, 'Can view log entry', 12, 'view_logentry'),
+(49, 'Can add permission', 13, 'add_permission'),
+(50, 'Can change permission', 13, 'change_permission'),
+(51, 'Can delete permission', 13, 'delete_permission'),
+(52, 'Can view permission', 13, 'view_permission'),
+(53, 'Can add group', 14, 'add_group'),
+(54, 'Can change group', 14, 'change_group'),
+(55, 'Can delete group', 14, 'delete_group'),
+(56, 'Can view group', 14, 'view_group'),
+(57, 'Can add user', 15, 'add_user'),
+(58, 'Can change user', 15, 'change_user'),
+(59, 'Can delete user', 15, 'delete_user'),
+(60, 'Can view user', 15, 'view_user'),
+(61, 'Can add content type', 16, 'add_contenttype'),
+(62, 'Can change content type', 16, 'change_contenttype'),
+(63, 'Can delete content type', 16, 'delete_contenttype'),
+(64, 'Can view content type', 16, 'view_contenttype'),
+(65, 'Can add session', 17, 'add_session'),
+(66, 'Can change session', 17, 'change_session'),
+(67, 'Can delete session', 17, 'delete_session'),
+(68, 'Can view session', 17, 'view_session');
 
 -- --------------------------------------------------------
 
@@ -165,14 +161,6 @@ CREATE TABLE `auth_user` (
   `is_active` tinyint(1) NOT NULL,
   `date_joined` datetime(6) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
---
--- Dumping data for table `auth_user`
---
-
-INSERT INTO `auth_user` (`id`, `password`, `last_login`, `is_superuser`, `username`, `first_name`, `last_name`, `email`, `is_staff`, `is_active`, `date_joined`) VALUES
-(1, 'pbkdf2_sha256$390000$lHuj3R18PiqN3oFA1ptWQz$RVYwt4rjYLACt5GAmU3OaD4IQ1UNqutHxINrQX/P7m8=', '2023-08-18 21:34:02.988157', 1, 'chanm', '', '', '', 1, 1, '2023-08-18 21:33:07.614509'),
-(2, 'pbkdf2_sha256$390000$RVCDIMHCQgQG1Jjlm5Z3k1$wxZn7QuQt9WVsiNadahbdWgyBT6OSLM5eKA6epq5lms=', NULL, 1, 'sadmin', '', '', '', 1, 1, '2023-08-18 21:33:36.814558');
 
 -- --------------------------------------------------------
 
@@ -196,6 +184,23 @@ CREATE TABLE `auth_user_user_permissions` (
   `id` bigint(20) NOT NULL,
   `user_id` int(11) NOT NULL,
   `permission_id` int(11) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `bank_details`
+--
+
+CREATE TABLE `bank_details` (
+  `id` bigint(20) NOT NULL,
+  `ipu_registration` bigint(20) UNSIGNED NOT NULL CHECK (`ipu_registration` >= 0),
+  `course` varchar(25) NOT NULL,
+  `account_holder_name` varchar(75) NOT NULL,
+  `account_number` varchar(50) NOT NULL,
+  `bank_name` varchar(100) NOT NULL,
+  `ifsc_code` varchar(50) NOT NULL,
+  `cheque_copy` varchar(100) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
@@ -276,10 +281,10 @@ CREATE TABLE `bba` (
   `transaction_proof` varchar(100) NOT NULL,
   `counselling_transaction_id` varchar(255) NOT NULL,
   `counselling_transaction_proof` varchar(100) NOT NULL,
-  `ip_address` varchar(100) NOT NULL,
-  `forwarded_address` varchar(255) NOT NULL,
-  `browser_info` varchar(1000) NOT NULL,
-  `created_at` varchar(255) NOT NULL
+  `ip_address` varchar(100) DEFAULT NULL,
+  `forwarded_address` varchar(255) DEFAULT NULL,
+  `browser_info` varchar(1000) DEFAULT NULL,
+  `created_at` varchar(255) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
@@ -358,10 +363,10 @@ CREATE TABLE `bba_temp` (
   `transaction_proof` varchar(100) NOT NULL,
   `counselling_transaction_id` varchar(255) NOT NULL,
   `counselling_transaction_proof` varchar(100) NOT NULL,
-  `ip_address` varchar(100) NOT NULL,
-  `forwarded_address` varchar(255) NOT NULL,
-  `browser_info` varchar(1000) NOT NULL,
-  `created_at` varchar(255) NOT NULL
+  `ip_address` varchar(100) DEFAULT NULL,
+  `forwarded_address` varchar(255) DEFAULT NULL,
+  `browser_info` varchar(1000) DEFAULT NULL,
+  `created_at` varchar(255) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
@@ -455,10 +460,10 @@ CREATE TABLE `btech` (
   `transaction_proof` varchar(100) NOT NULL,
   `counselling_transaction_id` varchar(255) NOT NULL,
   `counselling_transaction_proof` varchar(100) NOT NULL,
-  `ip_address` varchar(100) NOT NULL,
-  `forwarded_address` varchar(255) NOT NULL,
-  `browser_info` varchar(1000) NOT NULL,
-  `created_at` varchar(255) NOT NULL
+  `ip_address` varchar(100) DEFAULT NULL,
+  `forwarded_address` varchar(255) DEFAULT NULL,
+  `browser_info` varchar(1000) DEFAULT NULL,
+  `created_at` varchar(255) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
@@ -559,10 +564,10 @@ CREATE TABLE `btechle` (
   `transaction_proof` varchar(100) NOT NULL,
   `counselling_transaction_id` varchar(255) NOT NULL,
   `counselling_transaction_proof` varchar(100) NOT NULL,
-  `ip_address` varchar(100) NOT NULL,
-  `forwarded_address` varchar(255) NOT NULL,
-  `browser_info` varchar(1000) NOT NULL,
-  `created_at` varchar(255) NOT NULL
+  `ip_address` varchar(100) DEFAULT NULL,
+  `forwarded_address` varchar(255) DEFAULT NULL,
+  `browser_info` varchar(1000) DEFAULT NULL,
+  `created_at` varchar(255) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
@@ -661,10 +666,10 @@ CREATE TABLE `btech_le_temp` (
   `transaction_proof` varchar(100) NOT NULL,
   `counselling_transaction_id` varchar(255) NOT NULL,
   `counselling_transaction_proof` varchar(100) NOT NULL,
-  `ip_address` varchar(100) NOT NULL,
-  `forwarded_address` varchar(255) NOT NULL,
-  `browser_info` varchar(1000) NOT NULL,
-  `created_at` varchar(255) NOT NULL
+  `ip_address` varchar(100) DEFAULT NULL,
+  `forwarded_address` varchar(255) DEFAULT NULL,
+  `browser_info` varchar(1000) DEFAULT NULL,
+  `created_at` varchar(255) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
@@ -756,10 +761,10 @@ CREATE TABLE `btech_temp` (
   `transaction_proof` varchar(100) NOT NULL,
   `counselling_transaction_id` varchar(255) NOT NULL,
   `counselling_transaction_proof` varchar(100) NOT NULL,
-  `ip_address` varchar(100) NOT NULL,
-  `forwarded_address` varchar(255) NOT NULL,
-  `browser_info` varchar(1000) NOT NULL,
-  `created_at` varchar(255) NOT NULL
+  `ip_address` varchar(100) DEFAULT NULL,
+  `forwarded_address` varchar(255) DEFAULT NULL,
+  `browser_info` varchar(1000) DEFAULT NULL,
+  `created_at` varchar(255) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
@@ -779,15 +784,6 @@ CREATE TABLE `django_admin_log` (
   `user_id` int(11) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
---
--- Dumping data for table `django_admin_log`
---
-
-INSERT INTO `django_admin_log` (`id`, `action_time`, `object_id`, `object_repr`, `action_flag`, `change_message`, `content_type_id`, `user_id`) VALUES
-(1, '2023-08-18 21:35:14.558311', '1', '127.0.0.1', 1, '[{\"added\": {}}]', 2, 1),
-(2, '2023-08-18 21:39:51.032041', '2', '103.172.73.125', 1, '[{\"added\": {}}]', 2, 1),
-(3, '2023-08-18 21:43:21.988116', '2', '103.172.73.175', 2, '[{\"changed\": {\"fields\": [\"Ip address\"]}}]', 2, 1);
-
 -- --------------------------------------------------------
 
 --
@@ -805,22 +801,23 @@ CREATE TABLE `django_content_type` (
 --
 
 INSERT INTO `django_content_type` (`id`, `app_label`, `model`) VALUES
-(11, 'admin', 'logentry'),
-(13, 'auth', 'group'),
-(12, 'auth', 'permission'),
-(14, 'auth', 'user'),
-(15, 'contenttypes', 'contenttype'),
+(12, 'admin', 'logentry'),
+(14, 'auth', 'group'),
+(13, 'auth', 'permission'),
+(15, 'auth', 'user'),
+(16, 'contenttypes', 'contenttype'),
 (2, 'form', 'allowedip'),
-(8, 'form', 'bba'),
-(7, 'form', 'bbatemp'),
-(4, 'form', 'btech'),
-(6, 'form', 'btechle'),
-(5, 'form', 'btechletemp'),
-(3, 'form', 'btechtemp'),
+(3, 'form', 'bankdetails'),
+(9, 'form', 'bba'),
+(8, 'form', 'bbatemp'),
+(5, 'form', 'btech'),
+(7, 'form', 'btechle'),
+(6, 'form', 'btechletemp'),
+(4, 'form', 'btechtemp'),
 (1, 'form', 'login'),
-(10, 'form', 'mba'),
-(9, 'form', 'mbatemp'),
-(16, 'sessions', 'session');
+(11, 'form', 'mba'),
+(10, 'form', 'mbatemp'),
+(17, 'sessions', 'session');
 
 -- --------------------------------------------------------
 
@@ -860,7 +857,10 @@ INSERT INTO `django_migrations` (`id`, `app`, `name`, `applied`) VALUES
 (18, 'form', '0001_initial', '2023-08-17 16:28:00.664579'),
 (19, 'sessions', '0001_initial', '2023-08-17 16:28:00.714265'),
 (20, 'form', '0002_alter_bba_first_subject_12th_and_more', '2023-08-17 16:33:49.567372'),
-(21, 'form', '0003_alter_mba_rollno_ug_alter_mba_year_of_ug_and_more', '2023-08-17 17:44:24.181840');
+(21, 'form', '0003_alter_mba_rollno_ug_alter_mba_year_of_ug_and_more', '2023-08-17 17:44:24.181840'),
+(22, 'form', '0004_alter_login_created_at_alter_login_ip_address', '2023-08-21 09:03:28.362966'),
+(23, 'form', '0005_alter_bba_browser_info_alter_bba_created_at_and_more', '2023-08-21 09:03:30.466494'),
+(24, 'form', '0006_bankdetails', '2023-08-25 17:19:23.284476');
 
 -- --------------------------------------------------------
 
@@ -873,13 +873,6 @@ CREATE TABLE `django_session` (
   `session_data` longtext NOT NULL,
   `expire_date` datetime(6) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
---
--- Dumping data for table `django_session`
---
-
-INSERT INTO `django_session` (`session_key`, `session_data`, `expire_date`) VALUES
-('u0gv8phh69ti5utc7jpd7l9ymtr9xxp4', '.eJxVjEEOgjAQRe_StWlKGTvUpXvOQGY6g6CmTSisjHdXEha6_e-9_zIDbes0bFWXYRZzMY05_W5M6aF5B3KnfCs2lbwuM9tdsQetti-iz-vh_h1MVKdvHQIjNdQgnJ3n0EWCRIogGEZpOydOE7YQoRuB1QXkqI59G9ALM6B5fwDXBjem:1qX76Y:lgisjTY_CFrc9Fij2HoWV_qSOprDSWmbL2BjI18SiNc', '2023-09-01 21:34:02.996122');
 
 -- --------------------------------------------------------
 
@@ -896,8 +889,8 @@ CREATE TABLE `login` (
   `candidate_email` varchar(100) NOT NULL,
   `candidate_mobile` bigint(20) UNSIGNED NOT NULL CHECK (`candidate_mobile` >= 0),
   `course` varchar(100) NOT NULL,
-  `ip_address` varchar(100) NOT NULL,
-  `created_at` datetime(6) NOT NULL
+  `ip_address` varchar(100) DEFAULT NULL,
+  `created_at` datetime(6) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
@@ -985,10 +978,10 @@ CREATE TABLE `mba` (
   `transaction_proof` varchar(100) NOT NULL,
   `counselling_transaction_id` varchar(255) NOT NULL,
   `counselling_transaction_proof` varchar(100) NOT NULL,
-  `ip_address` varchar(100) NOT NULL,
-  `forwarded_address` varchar(255) NOT NULL,
-  `browser_info` varchar(1000) NOT NULL,
-  `created_at` varchar(255) NOT NULL
+  `ip_address` varchar(100) DEFAULT NULL,
+  `forwarded_address` varchar(255) DEFAULT NULL,
+  `browser_info` varchar(1000) DEFAULT NULL,
+  `created_at` varchar(255) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
@@ -1074,10 +1067,10 @@ CREATE TABLE `mba_temp` (
   `transaction_proof` varchar(100) NOT NULL,
   `counselling_transaction_id` varchar(255) NOT NULL,
   `counselling_transaction_proof` varchar(100) NOT NULL,
-  `ip_address` varchar(100) NOT NULL,
-  `forwarded_address` varchar(255) NOT NULL,
-  `browser_info` varchar(1000) NOT NULL,
-  `created_at` varchar(255) NOT NULL
+  `ip_address` varchar(100) DEFAULT NULL,
+  `forwarded_address` varchar(255) DEFAULT NULL,
+  `browser_info` varchar(1000) DEFAULT NULL,
+  `created_at` varchar(255) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
@@ -1134,6 +1127,13 @@ ALTER TABLE `auth_user_user_permissions`
   ADD PRIMARY KEY (`id`),
   ADD UNIQUE KEY `auth_user_user_permissions_user_id_permission_id_14a6b632_uniq` (`user_id`,`permission_id`),
   ADD KEY `auth_user_user_permi_permission_id_1fbb5f2c_fk_auth_perm` (`permission_id`);
+
+--
+-- Indexes for table `bank_details`
+--
+ALTER TABLE `bank_details`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `ipu_registration` (`ipu_registration`);
 
 --
 -- Indexes for table `bba`
@@ -1243,7 +1243,7 @@ ALTER TABLE `mba_temp`
 -- AUTO_INCREMENT for table `allowed_ip_addresses`
 --
 ALTER TABLE `allowed_ip_addresses`
-  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `auth_group`
@@ -1261,13 +1261,13 @@ ALTER TABLE `auth_group_permissions`
 -- AUTO_INCREMENT for table `auth_permission`
 --
 ALTER TABLE `auth_permission`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=65;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=69;
 
 --
 -- AUTO_INCREMENT for table `auth_user`
 --
 ALTER TABLE `auth_user`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `auth_user_groups`
@@ -1279,6 +1279,12 @@ ALTER TABLE `auth_user_groups`
 -- AUTO_INCREMENT for table `auth_user_user_permissions`
 --
 ALTER TABLE `auth_user_user_permissions`
+  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `bank_details`
+--
+ALTER TABLE `bank_details`
   MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT;
 
 --
@@ -1321,19 +1327,19 @@ ALTER TABLE `btech_temp`
 -- AUTO_INCREMENT for table `django_admin_log`
 --
 ALTER TABLE `django_admin_log`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `django_content_type`
 --
 ALTER TABLE `django_content_type`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=17;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=18;
 
 --
 -- AUTO_INCREMENT for table `django_migrations`
 --
 ALTER TABLE `django_migrations`
-  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=22;
+  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=25;
 
 --
 -- AUTO_INCREMENT for table `login`
