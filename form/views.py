@@ -9,6 +9,7 @@ from django.conf import settings
 import secrets
 import string
 from django.db import IntegrityError
+from django.contrib.sessions.models import Session
 
 import logging
 
@@ -16,17 +17,9 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-# we are taking a flag variable named logged_in
-logged_in = False 
-# if this logged_in is True, then only user can see pages like /btech or /btech-preview etc.
-# if user tries to directly come to /btech or /btech-preview etc, then we will redirect him back to /login
-
-# also we are taking application_id as a global variable at the very beginning of the program
-# so that we avoid passing the application_id from one view to other for performing CRUD operations
-application_id = ""
-ipu_registration = ""
-course=""
-# this empty string will be filled with value either from the index function or from login function 
+# Note: earlier we were taking global variables for storing ipu_registration, application_id and a bool logged_in variable
+# But that was a major major issue because when multiple users logged in at same time data mismatch happened
+# So its better to take help of sessions framework
 
 
 # Function for generating random 12 letter/digit password
@@ -78,20 +71,23 @@ def index(request):
         for ip in allowed_ips:
             allowed_ips_list.append(ip.ip_address)
         ip_address = request.META.get('REMOTE_ADDR')
-        # if ip_address not in allowed_ips_list:
-        #     return render(request, 'index.html')
+        # if admin adds * in the table then allow all ips , otherwise allow specific ips
+        if ( ('0.0.0.0' not in allowed_ips_list) and  (ip_address not in allowed_ips_list) ):
+            return render(request, 'index.html')
         candidate_name = request.POST.get('candidate_name')
         candidate_email = request.POST.get('candidate_email')
         candidate_mobile = request.POST.get('candidate_mobile')
-        global ipu_registration
         ipu_registration = request.POST.get('ipu_registration')
+        # Using session storage to store key value pair, the key is 'ipu_registration' and its value is coming from POST request
+        # This value will be used by every other endpoint to perform CRUD operations on the desired record
+        request.session['ipu_registration'] = ipu_registration
+        request.session.modified = True
         created_at = str(datetime.datetime.now())[:19]        # only first 19 indexes so that it doesnt store microseconds
         logins = Login.objects.all()
         for login in logins:
-            if ((login.candidate_email == candidate_email) or (login.candidate_mobile == candidate_mobile)):
-                message="User already exists"
-                context = {'message': message}
-                return render(request, 'login.html', context) 
+            if ((login.candidate_email == candidate_email) or (login.candidate_mobile == candidate_mobile) or (login.ipu_registration == ipu_registration)):
+                messages.info(request, 'User already exists!')
+                return redirect('login')
         # getting unique password and id
         id = get_random_id()
         pwd = get_random_pwd()
@@ -101,17 +97,16 @@ def index(request):
         custom_message = "Your IPU Registration No. is:\n  " + ipu_registration + "\n\nYour password is:\n  " + pwd
         send_mail( 'MAIT Login Credentials', custom_message , email_from, recipient_list, fail_silently=True)
         # After sending mail, now saving user id and password
-        final_id = "MAIT/MQ/2023-24/"+id   #only last 8 randomly generated digits to be sent to user but whole id to be stored in database
-        global application_id
+        final_id = "MAIT/MQ/2023-24/"+id   #only last 8 randomly generated digits are random, but whole id to be stored in database
         application_id = final_id
+        # Using session storage to store key value pair, the key is 'application_id' and its value the generated id.
+        # This value will be used by every other endpoint to perform CRUD operations on the desired record
+        request.session['application_id'] = application_id
+        request.session.modified = True
         newlogin = Login(application_id = application_id, password=pwd, ipu_registration=ipu_registration, candidate_name=candidate_name, candidate_mobile=candidate_mobile, candidate_email=candidate_email, ip_address=ip_address, created_at=created_at)
-        # when the ipu_registration number is already exisiting in db, then an error is raised while saving the records
-        try:
-            newlogin.save()
-        except IntegrityError as e:
-            message = e
-            context = {'message': message}
-            return render(request, 'login.html', context) 
+        # Saving the newly created user
+        newlogin.save()
+        messages.info(request, 'Login Credentials have been sent to your mail.')
         return redirect('login')
     else:
         # GET request
@@ -134,21 +129,27 @@ def login(request):
         for ip in allowed_ips:
             allowed_ips_list.append(ip.ip_address)
         ip_address = request.META.get('REMOTE_ADDR')
-        # if ip_address not in allowed_ips_list:
-        #     return render(request, 'login.html')
-        global ipu_registration
+        # if admin adds * in the table then allow all ips , otherwise allow specific ips
+        if ( ('0.0.0.0' not in allowed_ips_list) and  (ip_address not in allowed_ips_list) ):
+            return render(request, 'login.html')
         ipu_registration = request.POST.get('ipu_registration')
+        # Using session storage to store key value pair, the key is 'ipu_registration' and its value is coming from POST request
+        # This value will be used by every other endpoint to perform CRUD operations on the desired record
+        request.session['ipu_registration'] = ipu_registration
+        request.session.modified = True
         user_pwd = request.POST.get('user_pwd')
         # now checking id password
         if ipu_registration in credentials:
             if user_pwd == credentials[ipu_registration] :
                 # when both ipu_registration no. and password are correct, then redirecting to courses page 
-                # and setting global variable application_id to corresponding value
-                # and setting flag logged_in to True
-                global logged_in
+                # and setting session storage variable application_id to corresponding value
+                # and setting session storage flag logged_in to True
                 logged_in = True
-                global application_id
                 application_id = Login.objects.filter(ipu_registration=ipu_registration).first().application_id
+                # storing both in session storage
+                request.session['logged_in'] = logged_in
+                request.session['application_id'] = application_id
+                request.session.modified = True
                 return redirect('courses')
             else :                   # when ipu_registration is ok but doesnt match the corresponding user password
                 message="Invalid Password"
@@ -165,56 +166,59 @@ def login(request):
 # Courses: For choice of course
 def courses(request):
     # if user is not logged in, then he shall be redirected to login page
+    logged_in = request.session.get('logged_in')
     if not logged_in:
         return redirect('login')
     # if request method is POST, then it means user has clicked on "Proceed" on the /courses.html page
     if request.method == "POST":
-        global course
         course = request.POST.get('course')
+        # saving the course in session storage too because this will help in /dashboard and /counselling endpoints
+        request.session['course'] = course
+        request.session.modified = True
         # if user selected btech then three possibilities:
         # either he is a completely new user (then redirect to btech1)
         # or he has some temporary data submitted (then redirect to btech1)
-        # or he has permanent data submitted (then redirect to btech-preview)
+        # or he has permanent data submitted (then redirect to dashboard)
         # same case is for all courses
         if course == "Btech":
-            login_record = Login.objects.filter(application_id=application_id).first()
+            login_record = Login.objects.filter(application_id=request.session.get('application_id')).first()
             login_record.course = course
             login_record.save()
-            temp_record = BtechTemp.objects.filter(application_id=application_id).first()
-            permanent_record = Btech.objects.filter(application_id=application_id).first()
+            temp_record = BtechTemp.objects.filter(application_id=request.session.get('application_id')).first()
+            permanent_record = Btech.objects.filter(application_id=request.session.get('application_id')).first()
             if temp_record:
                 return redirect ('btech1')
             if permanent_record:
                 return redirect ('dashboard')
             return redirect ('btech1')
         if course == "BtechLE":
-            login_record = Login.objects.filter(application_id=application_id).first()
+            login_record = Login.objects.filter(application_id=request.session.get('application_id')).first()
             login_record.course = course
             login_record.save()
-            temp_record = BtechLETemp.objects.filter(application_id=application_id).first()
-            permanent_record = BtechLE.objects.filter(application_id=application_id).first()
+            temp_record = BtechLETemp.objects.filter(application_id=request.session.get('application_id')).first()
+            permanent_record = BtechLE.objects.filter(application_id=request.session.get('application_id')).first()
             if temp_record:
                 return redirect ('btechle1')
             if permanent_record:
                 return redirect ('dashboard')
             return redirect ('btechle1')
         if course == "BBA":
-            login_record = Login.objects.filter(application_id=application_id).first()
+            login_record = Login.objects.filter(application_id=request.session.get('application_id')).first()
             login_record.course = course
             login_record.save()
-            temp_record = BbaTemp.objects.filter(application_id=application_id).first()
-            permanent_record = Bba.objects.filter(application_id=application_id).first()
+            temp_record = BbaTemp.objects.filter(application_id=request.session.get('application_id')).first()
+            permanent_record = Bba.objects.filter(application_id=request.session.get('application_id')).first()
             if temp_record:
                 return redirect ('bba1')
             if permanent_record:
                 return redirect ('dashboard')
             return redirect ('bba1')
         if course == "MBA":
-            login_record = Login.objects.filter(application_id=application_id).first()
+            login_record = Login.objects.filter(application_id=request.session.get('application_id')).first()
             login_record.course = course
             login_record.save()
-            temp_record = MbaTemp.objects.filter(application_id=application_id).first()
-            permanent_record = Mba.objects.filter(application_id=application_id).first()
+            temp_record = MbaTemp.objects.filter(application_id=request.session.get('application_id')).first()
+            permanent_record = Mba.objects.filter(application_id=request.session.get('application_id')).first()
             if temp_record:
                 return redirect ('mba1')
             if permanent_record:
@@ -232,7 +236,6 @@ def password_reset(request):
         credentials = {}         # empty dictionary for storing key value pairs of id:pwd
         for login in logins:
             credentials[str(login.ipu_registration)] = login.candidate_email
-        global ipu_registration
         ipu_registration = request.POST.get('ipu_registration')
         email = request.POST.get('email')
         # now checking id and email
@@ -260,37 +263,36 @@ def password_reset(request):
             message="No record found for GGSIPU Registration Number "+ipu_registration
             messages.info(request, message)
             return render(request, 'password-reset.html')
-        
-
+    # GET request
     return render(request, 'password-reset.html')
 
 # Dashboard: For giving preview/edit/counselling fee options
 def dashboard(request):
     # if user is not logged in, then he shall be redirected to login page
+    logged_in = request.session.get('logged_in')
     if not logged_in:
         return redirect('login')
     # GET request: We shall pass the course as context too
-    global course
+    course = request.session.get('course')
     if course == "Btech":
-        record = Btech.objects.all().filter(application_id = application_id).first()
+        record = Btech.objects.all().filter(application_id=request.session.get('application_id')).first()
     if course == "BtechLE":
-        record = BtechLE.objects.all().filter(application_id = application_id).first()
+        record = BtechLE.objects.all().filter(application_id=request.session.get('application_id')).first()
     if course == "BBA":
-        record = Bba.objects.all().filter(application_id = application_id).first()
+        record = Bba.objects.all().filter(application_id=request.session.get('application_id')).first()
     if course == "MBA":
-        record = Mba.objects.all().filter(application_id = application_id).first()
+        record = Mba.objects.all().filter(application_id=request.session.get('application_id')).first()
     context = {'course': course, 'record': record}
     return render(request, 'dashboard.html', context)
 
 # Counselling: For user to pay counselling fees
 def counselling(request):
     # if user is not logged in, then he shall be redirected to login page
+    logged_in = request.session.get('logged_in')
     if not logged_in:
         return redirect('login')
     # When POST, then simply save the two fields
     if request.method == "POST":
-        global course
-        global ipu_registration
         counselling_transaction_id = request.POST.get('counselling_transaction_id')
         counselling_transaction_proof = request.FILES['counselling_transaction_proof']
         # bank details
@@ -300,35 +302,41 @@ def counselling(request):
         ifsc_code = request.POST.get('ifsc_code')
         cheque_copy = request.FILES['cheque_copy']
         # saving bank details
-        newobj = BankDetails(ipu_registration=ipu_registration,course=course, account_holder_name=account_holder_name, account_number=account_number,
+        newobj = BankDetails(ipu_registration = request.session.get('ipu_registration'),course=request.session.get('course'), account_holder_name=account_holder_name, account_number=account_number,
                              bank_name=bank_name, ifsc_code=ifsc_code, )
         newobj.save()
         # saving file after instance is created
         newobj.cheque_copy = cheque_copy
         newobj.save()
+        course = request.session.get('course')
+        # print(course)
         if course == "Btech":
-            record = Btech.objects.filter(application_id = application_id).first()
+            record = Btech.objects.filter(application_id =  request.session.get('application_id')).first()
             record.counselling_transaction_id = counselling_transaction_id
             record.counselling_transaction_proof = counselling_transaction_proof
             record.save()
+            messages.info(request, 'Thank You! Counselling Fees Paid Successfully')
             return redirect ('btech_preview')
         if course == "BtechLE":
-            record = BtechLE.objects.filter(application_id = application_id).first()
+            record = BtechLE.objects.filter(application_id =  request.session.get('application_id')).first()
             record.counselling_transaction_id = counselling_transaction_id
             record.counselling_transaction_proof = counselling_transaction_proof
             record.save()
+            messages.info(request, 'Thank You! Counselling Fees Paid Successfully')
             return redirect ('btechle_preview')
         if course == "BBA":
-            record = Bba.objects.filter(application_id = application_id).first()
+            record = Bba.objects.filter(application_id =  request.session.get('application_id')).first()
             record.counselling_transaction_id = counselling_transaction_id
             record.counselling_transaction_proof = counselling_transaction_proof
             record.save()
+            messages.info(request, 'Thank You! Counselling Fees Paid Successfully')
             return redirect ('bba_preview')
         if course == "MBA":
-            record = Mba.objects.filter(application_id = application_id).first()
+            record = Mba.objects.filter(application_id =  request.session.get('application_id')).first()
             record.counselling_transaction_id = counselling_transaction_id
             record.counselling_transaction_proof = counselling_transaction_proof
             record.save()
+            messages.info(request, 'Thank You! Counselling Fees Paid Successfully')
             return redirect ('mba_preview')
     # GET request: simply show counselling page
     return render(request, 'counselling.html')
@@ -342,6 +350,7 @@ def counselling(request):
 
 def btech1(request):
     # if user is not logged in, then he shall be redirected to login page
+    logged_in =  request.session.get('logged_in')
     if not logged_in:
         return redirect('login')
     # if request method is POST, then it means user has clicked on "Save and Next" on the /btech1.html page
@@ -365,7 +374,7 @@ def btech1(request):
         # if a record for this application id already exists , then we will update the existing record
         # else if a record doesn't exist, we will create a new record
         # so, let's check if a record exists or not
-        existing_record = BtechTemp.objects.all().filter(application_id = application_id).first()
+        existing_record = BtechTemp.objects.all().filter(application_id =  request.session.get('application_id')).first()
         if existing_record :
             # update all fields
             existing_record.candidate_first_name = candidate_first_name   
@@ -388,7 +397,7 @@ def btech1(request):
             # saving all fields in a new object
             # if the record is existing then it already has application_id and ipu_registration,
             #  but if its getting saved first time then we have to save both of them
-            newform = BtechTemp(application_id=application_id, ipu_registration=ipu_registration,
+            newform = BtechTemp(application_id =  request.session.get('application_id'), ipu_registration =  request.session.get('ipu_registration'),
                             candidate_first_name=candidate_first_name,
                             candidate_middle_name=candidate_middle_name, candidate_last_name=candidate_last_name,
                             email=email, candidate_number=candidate_number, gender=gender, dob=dob, category=category, region=region,
@@ -401,12 +410,13 @@ def btech1(request):
     # or user is coming from some other part of btech form by clicking the step-form (progress bar)
     # in all three cases we can render btech1.html with context
     # to create context we will use the globally available variable application_id
-    record = BtechTemp.objects.all().filter(application_id = application_id).first()
+    record = BtechTemp.objects.all().filter(application_id =  request.session.get('application_id')).first()
     context = {'record': record}
     return render(request, 'btech/btech1.html', context)
 
 def btech2(request):
     # if user is not logged in, then he shall be redirected to login page
+    logged_in =  request.session.get('logged_in')
     if not logged_in:
         return redirect('login')
     # if request method is POST, then it means user has clicked on "Save and Next" on the /btech2.html page
@@ -436,7 +446,7 @@ def btech2(request):
         # if a record for this application id already exists , then we will update the existing record
         # else if a record doesn't exist, we will create a new record
         # so, let's check if a record exists or not
-        existing_record = BtechTemp.objects.all().filter(application_id = application_id).first()
+        existing_record = BtechTemp.objects.all().filter(application_id =  request.session.get('application_id')).first()
         if existing_record :
             # update all fields
             existing_record.father_first_name = father_first_name   
@@ -466,7 +476,7 @@ def btech2(request):
             # saving all fields in a new object
             # if the record is existing then it already has application_id and ipu_registration,
             #  but if its getting saved first time then we have to save both of them
-            newform = BtechTemp(application_id=application_id, ipu_registration=ipu_registration, 
+            newform = BtechTemp(application_id =  request.session.get('application_id'), ipu_registration =  request.session.get('ipu_registration'), 
                             father_first_name=father_first_name, father_middle_name=father_middle_name, father_last_name=father_last_name,
                             mother_first_name=mother_first_name, mother_middle_name=mother_middle_name, mother_last_name=mother_last_name,
                             father_qualification=father_qualification, mother_qualification=mother_qualification,
@@ -484,12 +494,13 @@ def btech2(request):
     # or user is coming from btech1.html after saving his record
     # in all three cases we can render btech2.html with context
     # to create context we will use the globally available variable application_id
-    record = BtechTemp.objects.all().filter(application_id = application_id).first()
+    record = BtechTemp.objects.all().filter(application_id =  request.session.get('application_id')).first()
     context = {'record': record}
     return render(request, 'btech/btech2.html', context)
 
 def btech3(request):
     # if user is not logged in, then he shall be redirected to login page
+    logged_in =  request.session.get('logged_in')
     if not logged_in:
         return redirect('login')
     # if request method is POST, then it means user has clicked on "Save and Next" on the /btech3.html page
@@ -521,7 +532,7 @@ def btech3(request):
         # if a record for this application id already exists , then we will update the existing record
         # else if a record doesn't exist, we will create a new record
         # so, let's check if a record exists or not
-        existing_record = BtechTemp.objects.all().filter(application_id = application_id).first()
+        existing_record = BtechTemp.objects.all().filter(application_id =  request.session.get('application_id')).first()
         if existing_record :
             # update all fields
             existing_record.board_12th = board_12th   
@@ -553,7 +564,7 @@ def btech3(request):
             # saving all fields in a new object
             # if the record is existing then it already has application_id and ipu_registration,
             #  but if its getting saved first time then we have to save both of them
-            newform = BtechTemp(application_id=application_id, ipu_registration=ipu_registration,
+            newform = BtechTemp(application_id =  request.session.get('application_id'), ipu_registration =  request.session.get('ipu_registration'),
                             board_12th=board_12th, year_of_12th=year_of_12th, rollno_12th=rollno_12th, school_12th=school_12th,
                             maths_12th=maths_12th, physics_12th=physics_12th, chemistry_12th=chemistry_12th, english_12th=english_12th,
                             other_subject_12th=other_subject_12th, other_subject_2_12th=other_subject_2_12th, aggregate_12th=aggregate_12th, 
@@ -568,12 +579,13 @@ def btech3(request):
     # or user is coming from btech2.html after saving his record
     # in all three cases we can render btech3.html with context
     # to create context we will use the globally available variable application_id
-    record = BtechTemp.objects.all().filter(application_id = application_id).first()
+    record = BtechTemp.objects.all().filter(application_id =  request.session.get('application_id')).first()
     context = {'record': record}
     return render(request, 'btech/btech3.html', context)
 
 def btech4(request):
     # if user is not logged in, then he shall be redirected to login page
+    logged_in =  request.session.get('logged_in')
     if not logged_in:
         return redirect('login')
     # if request method is POST, then it means user has clicked on "Save and Next" on the /btech4.html page
@@ -587,7 +599,7 @@ def btech4(request):
         # if a record for this application id already exists , then we will update the existing record
         # else if a record doesn't exist, we will create a new record
         # so, let's check if a record exists or not
-        existing_record = BtechTemp.objects.all().filter(application_id = application_id).first()
+        existing_record = BtechTemp.objects.all().filter(application_id =  request.session.get('application_id')).first()
         if existing_record :
             # update all fields
             existing_record.jee_rank = jee_rank   
@@ -601,7 +613,7 @@ def btech4(request):
             # saving all fields in a new object
             # if the record is existing then it already has application_id and ipu_registration,
             #  but if its getting saved first time then we have to save both of them
-            newform = BtechTemp(application_id=application_id, ipu_registration=ipu_registration,
+            newform = BtechTemp(application_id =  request.session.get('application_id'), ipu_registration =  request.session.get('ipu_registration'),
                             jee_rank=jee_rank, jee_percentile=jee_percentile, jee_rollno=jee_rollno,
                             special_achievements=special_achievements,)
             newform.save()
@@ -612,12 +624,13 @@ def btech4(request):
     # or user is coming from btech3.html after saving his record
     # in all three cases we can render btech4.html with context
     # to create context we will use the globally available variable application_id
-    record = BtechTemp.objects.all().filter(application_id = application_id).first()
+    record = BtechTemp.objects.all().filter(application_id =  request.session.get('application_id')).first()
     context = {'record': record}
     return render(request, 'btech/btech4.html', context)
 
 def btech5(request):
     # if user is not logged in, then he shall be redirected to login page
+    logged_in =  request.session.get('logged_in')
     if not logged_in:
         return redirect('login')
     # if request method is POST, then it means user has clicked on "Save and Next" on the /btech5.html page
@@ -640,7 +653,7 @@ def btech5(request):
         # if a record for this application id already exists , then we will update the existing record
         # else if a record doesn't exist, we will create a new record
         # so, let's check if a record exists or not
-        existing_record = BtechTemp.objects.all().filter(application_id = application_id).first()
+        existing_record = BtechTemp.objects.all().filter(application_id =  request.session.get('application_id')).first()
         if existing_record :
             # update all fields
             existing_record.preference1 = preference1   
@@ -663,7 +676,7 @@ def btech5(request):
             # saving all fields in a new object
             # if the record is existing then it already has application_id and ipu_registration,
             #  but if its getting saved first time then we have to save both of them
-            newform = BtechTemp(application_id=application_id, ipu_registration=ipu_registration,
+            newform = BtechTemp(application_id =  request.session.get('application_id'), ipu_registration =  request.session.get('ipu_registration'),
                             preference1=preference1, preference2=preference2, preference3=preference3,
                             preference4=preference4, preference5=preference5, preference6=preference6,
                             preference7=preference7, preference8=preference8, preference9=preference9, 
@@ -676,12 +689,13 @@ def btech5(request):
     # or user is coming from btech4.html after saving his record
     # in all three cases we can render btech5.html with context
     # to create context we will use the globally available variable application_id
-    record = BtechTemp.objects.all().filter(application_id = application_id).first()
+    record = BtechTemp.objects.all().filter(application_id =  request.session.get('application_id')).first()
     context = {'record': record}
     return render(request, 'btech/btech5.html', context)
 
 def btech6(request):
     # if user is not logged in, then he shall be redirected to login page
+    logged_in =  request.session.get('logged_in')
     if not logged_in:
         return redirect('login')
     # if request method is POST, then it means user has clicked on "Save and Next" on the /btech6.html page
@@ -698,7 +712,7 @@ def btech6(request):
         # if a record for this application id already exists , then we will update the existing record
         # else if a record doesn't exist, we will create a new record
         # so, let's check if a record exists or not
-        existing_record = BtechTemp.objects.all().filter(application_id = application_id).first()
+        existing_record = BtechTemp.objects.all().filter(application_id =  request.session.get('application_id')).first()
         if existing_record :
             # update all fields
             existing_record.passport_photo = passport_photo   
@@ -728,7 +742,7 @@ def btech6(request):
             # saving all fields in a new object
             # if the record is existing then it already has application_id and ipu_registration,
             #  but if its getting saved first time then we have to save both of them
-            newform = BtechTemp(application_id=application_id, ipu_registration=ipu_registration,
+            newform = BtechTemp(application_id =  request.session.get('application_id'), ipu_registration =  request.session.get('ipu_registration'),
                             passport_photo=passport_photo, jee_result=jee_result, marksheet_10th=marksheet_10th, marksheet_12th=marksheet_12th,
                             aadhaar=aadhaar, pancard=pancard, ipuregistrationproof=ipuregistrationproof)
             newform.save()
@@ -740,12 +754,13 @@ def btech6(request):
     # or user is coming from btech5.html after saving his record
     # in all three cases we can render btech6.html with context
     # to create context we will use the globally available variable application_id
-    record = BtechTemp.objects.all().filter(application_id = application_id).first()
+    record = BtechTemp.objects.all().filter(application_id =  request.session.get('application_id')).first()
     context = {'record': record}
     return render(request, 'btech/btech6.html', context)
 
 def btech7(request):
     # if user is not logged in, then he shall be redirected to login page
+    logged_in =  request.session.get('logged_in')
     if not logged_in:
         return redirect('login')
     # if request method is POST, then it means user has clicked on "Save and Next" on the /btech7.html page
@@ -758,7 +773,7 @@ def btech7(request):
         # else if a record doesn't exist, we will create a new record
         # (this will never be the case because we are not allowing user to come to /btech7 if he hasn't already filled previous data , but still handling this case)
         # so, let's check if a record exists or not
-        existing_record = BtechTemp.objects.all().filter(application_id = application_id).first()
+        existing_record = BtechTemp.objects.all().filter(application_id =  request.session.get('application_id')).first()
         if existing_record :
             # update all fields
             existing_record.transaction_id = transaction_id   
@@ -769,7 +784,7 @@ def btech7(request):
             return redirect ('btech')
         else:
             # saving all fields in a new object
-            newform = BtechTemp(application_id=application_id, ipu_registration=ipu_registration, 
+            newform = BtechTemp(application_id =  request.session.get('application_id'), ipu_registration =  request.session.get('ipu_registration'), 
                             transaction_id=transaction_id, transaction_proof=transaction_proof)
             newform.save()
             return redirect ('btech')
@@ -778,7 +793,7 @@ def btech7(request):
     # or user is coming from some other part of btech form by clicking the step-form (progress bar)
     # or user is coming from btech6.html after saving his record
     # we shall allow the user only in the case when he has submitted all 6 steps
-    record = BtechTemp.objects.all().filter(application_id = application_id).first()
+    record = BtechTemp.objects.all().filter(application_id =  request.session.get('application_id')).first()
     # so to check that, we will check whether some value on each step is filled or not
     # before that we can check if record exists or not:
     if not record:
@@ -809,6 +824,7 @@ def btech7(request):
 # Btech
 def btech(request):
     # if user is not logged in, then he shall be redirected to login page
+    logged_in =  request.session.get('logged_in')
     if not logged_in:
         return redirect('login')
     # if request method is POST, then it means user has clicked on "Submit" on the /btech.html page
@@ -917,17 +933,17 @@ def btech(request):
                         maths_10th=maths_10th, science_10th=science_10th, english_10th=english_10th, sst_10th=sst_10th,
                         other_subject_10th=other_subject_10th, other_subject_2_10th=other_subject_2_10th, aggregate_10th=aggregate_10th, 
                         jee_rank=jee_rank, jee_percentile=jee_percentile, jee_rollno=jee_rollno,
-                        ipu_registration=ipu_registration, special_achievements=special_achievements,
+                        ipu_registration =  request.session.get('ipu_registration'), special_achievements=special_achievements,
                         preference1=preference1, preference2=preference2, preference3=preference3,
                         preference4=preference4, preference5=preference5, preference6=preference6,
                         preference7=preference7, preference8=preference8, preference9=preference9, 
                         preference10=preference10, preference11=preference11, preference12=preference12, preference13=preference13,
-                        application_id=application_id, transaction_id=transaction_id,
+                        application_id =  request.session.get('application_id'), transaction_id=transaction_id,
                         category=category, region=region,
                         ip_address=ip_address, forwarded_address=forwarded_address, browser_info=browser_info, created_at=created_at,)
         newform.save()
         # now saving files after instance is created
-        temp_record = BtechTemp.objects.get(application_id=application_id)
+        temp_record = BtechTemp.objects.get(application_id =  request.session.get('application_id'))
         newobj = Btech.objects.get(pk=newform.pk)
         newobj.passport_photo = temp_record.passport_photo
         newobj.jee_result = temp_record.jee_result
@@ -941,28 +957,30 @@ def btech(request):
         temp_record.delete()   # deleting the temporary record
         # At this point, form is submitted successfully
         return redirect('btech_preview')
-    record = BtechTemp.objects.all().filter(application_id = application_id).first()
+    record = BtechTemp.objects.all().filter(application_id =  request.session.get('application_id')).first()
     context = {'record': record}
     return render(request, 'btech/btech.html', context)
     
 # Btech Preview
 def btech_preview(request):
     # if user is not logged in, then he shall be redirected to login page
+    logged_in =  request.session.get('logged_in')
     if not logged_in:
         return redirect('login')
-    record = Btech.objects.filter(application_id=application_id).first()
+    record = Btech.objects.filter(application_id =  request.session.get('application_id')).first()
     context = {'record': record}
     return render(request, 'btech/btech-preview.html', context)
     
 # Edit Btech (after final submission)
 def btech_edit(request):
     # if user is not logged in, then he shall be redirected to login page
+    logged_in =  request.session.get('logged_in')
     if not logged_in:
         return redirect('login')
     # if request method is POST, then it means user has clicked on "Save" on the /btech-edit.html page
     # so we shall save the data in permanent table and delete from temporary table
     if request.method == 'POST':
-        record = Btech.objects.all().filter(application_id = application_id).first()
+        record = Btech.objects.all().filter(application_id =  request.session.get('application_id')).first()
         record.transaction_id = request.POST.get('transaction_id')
         # category and region
         record.category = request.POST.get('category')
@@ -1046,7 +1064,7 @@ def btech_edit(request):
         # At this point, form is submitted successfully
         return redirect('btech_preview')
     # GET request: render the filled details
-    record = Btech.objects.all().filter(application_id = application_id).first()
+    record = Btech.objects.all().filter(application_id =  request.session.get('application_id')).first()
     context = {'record': record}
     return render(request, 'btech/btech-edit.html', context)
 
@@ -1056,6 +1074,7 @@ def btech_edit(request):
 
 def btechle1(request):
     # if user is not logged in, then he shall be redirected to login page
+    logged_in =  request.session.get('logged_in')
     if not logged_in:
         return redirect('login')
     # if request method is POST, then it means user has clicked on "Save and Next" on the /btechle1.html page
@@ -1079,7 +1098,7 @@ def btechle1(request):
         # if a record for this application id already exists , then we will update the existing record
         # else if a record doesn't exist, we will create a new record
         # so, let's check if a record exists or not
-        existing_record = BtechLETemp.objects.all().filter(application_id = application_id).first()
+        existing_record = BtechLETemp.objects.all().filter(application_id =  request.session.get('application_id')).first()
         if existing_record :
             # update all fields
             existing_record.candidate_first_name = candidate_first_name   
@@ -1102,7 +1121,7 @@ def btechle1(request):
             # saving all fields in a new object
             # if the record is existing then it already has application_id and ipu_registration,
             #  but if its getting saved first time then we have to save both of them
-            newform = BtechLETemp(application_id=application_id, ipu_registration=ipu_registration,
+            newform = BtechLETemp(application_id =  request.session.get('application_id'), ipu_registration =  request.session.get('ipu_registration'),
                             candidate_first_name=candidate_first_name,
                             candidate_middle_name=candidate_middle_name, candidate_last_name=candidate_last_name,
                             email=email, candidate_number=candidate_number, gender=gender, dob=dob, category=category, region=region,
@@ -1115,12 +1134,13 @@ def btechle1(request):
     # or user is coming from some other part of btechle form by clicking the step-form (progress bar)
     # in all three cases we can render btechle1.html with context
     # to create context we will use the globally available variable application_id
-    record = BtechLETemp.objects.all().filter(application_id = application_id).first()
+    record = BtechLETemp.objects.all().filter(application_id =  request.session.get('application_id')).first()
     context = {'record': record}
     return render(request, 'btechle/btechle1.html', context)
 
 def btechle2(request):
     # if user is not logged in, then he shall be redirected to login page
+    logged_in =  request.session.get('logged_in')
     if not logged_in:
         return redirect('login')
     # if request method is POST, then it means user has clicked on "Save and Next" on the /btechle2.html page
@@ -1150,7 +1170,7 @@ def btechle2(request):
         # if a record for this application id already exists , then we will update the existing record
         # else if a record doesn't exist, we will create a new record
         # so, let's check if a record exists or not
-        existing_record = BtechLETemp.objects.all().filter(application_id = application_id).first()
+        existing_record = BtechLETemp.objects.all().filter(application_id =  request.session.get('application_id')).first()
         if existing_record :
             # update all fields
             existing_record.father_first_name = father_first_name   
@@ -1180,7 +1200,7 @@ def btechle2(request):
             # saving all fields in a new object
             # if the record is existing then it already has application_id and ipu_registration,
             #  but if its getting saved first time then we have to save both of them
-            newform = BtechLETemp(application_id=application_id, ipu_registration=ipu_registration, 
+            newform = BtechLETemp(application_id =  request.session.get('application_id'), ipu_registration =  request.session.get('ipu_registration'), 
                             father_first_name=father_first_name, father_middle_name=father_middle_name, father_last_name=father_last_name,
                             mother_first_name=mother_first_name, mother_middle_name=mother_middle_name, mother_last_name=mother_last_name,
                             father_qualification=father_qualification, mother_qualification=mother_qualification,
@@ -1198,12 +1218,13 @@ def btechle2(request):
     # or user is coming from btechle1.html after saving his record
     # in all three cases we can render btechle2.html with context
     # to create context we will use the globally available variable application_id
-    record = BtechLETemp.objects.all().filter(application_id = application_id).first()
+    record = BtechLETemp.objects.all().filter(application_id =  request.session.get('application_id')).first()
     context = {'record': record}
     return render(request, 'btechle/btechle2.html', context)
 
 def btechle3(request):
     # if user is not logged in, then he shall be redirected to login page
+    logged_in =  request.session.get('logged_in')
     if not logged_in:
         return redirect('login')
     # if request method is POST, then it means user has clicked on "Save and Next" on the /btechle3.html page
@@ -1241,7 +1262,7 @@ def btechle3(request):
         # if a record for this application id already exists , then we will update the existing record
         # else if a record doesn't exist, we will create a new record
         # so, let's check if a record exists or not
-        existing_record = BtechLETemp.objects.all().filter(application_id = application_id).first()
+        existing_record = BtechLETemp.objects.all().filter(application_id =  request.session.get('application_id')).first()
         if existing_record :
             # update all fields
             existing_record.board_12th = board_12th   
@@ -1279,7 +1300,7 @@ def btechle3(request):
             # saving all fields in a new object
             # if the record is existing then it already has application_id and ipu_registration,
             #  but if its getting saved first time then we have to save both of them
-            newform = BtechLETemp(application_id=application_id, ipu_registration=ipu_registration,
+            newform = BtechLETemp(application_id =  request.session.get('application_id'), ipu_registration =  request.session.get('ipu_registration'),
                             board_12th=board_12th, year_of_12th=year_of_12th, rollno_12th=rollno_12th, school_12th=school_12th,
                             maths_12th=maths_12th, physics_12th=physics_12th, chemistry_12th=chemistry_12th, english_12th=english_12th,
                             other_subject_12th=other_subject_12th, other_subject_2_12th=other_subject_2_12th, aggregate_12th=aggregate_12th, 
@@ -1296,12 +1317,13 @@ def btechle3(request):
     # or user is coming from btechle2.html after saving his record
     # in all three cases we can render btechle3.html with context
     # to create context we will use the globally available variable application_id
-    record = BtechLETemp.objects.all().filter(application_id = application_id).first()
+    record = BtechLETemp.objects.all().filter(application_id =  request.session.get('application_id')).first()
     context = {'record': record}
     return render(request, 'btechle/btechle3.html', context)
 
 def btechle4(request):
     # if user is not logged in, then he shall be redirected to login page
+    logged_in =  request.session.get('logged_in')
     if not logged_in:
         return redirect('login')
     # if request method is POST, then it means user has clicked on "Save and Next" on the /btechle4.html page
@@ -1314,7 +1336,7 @@ def btechle4(request):
         # if a record for this application id already exists , then we will update the existing record
         # else if a record doesn't exist, we will create a new record
         # so, let's check if a record exists or not
-        existing_record = BtechLETemp.objects.all().filter(application_id = application_id).first()
+        existing_record = BtechLETemp.objects.all().filter(application_id =  request.session.get('application_id')).first()
         if existing_record :
             # update all fields
             existing_record.cet_rank = cet_rank
@@ -1327,7 +1349,7 @@ def btechle4(request):
             # saving all fields in a new object
             # if the record is existing then it already has application_id and ipu_registration,
             #  but if its getting saved first time then we have to save both of them
-            newform = BtechLETemp(application_id=application_id, ipu_registration=ipu_registration,
+            newform = BtechLETemp(application_id =  request.session.get('application_id'), ipu_registration =  request.session.get('ipu_registration'),
                             cet_rank=cet_rank, cet_rollno=cet_rollno, special_achievements=special_achievements,)
             newform.save()
             return redirect ('btechle5')
@@ -1337,12 +1359,13 @@ def btechle4(request):
     # or user is coming from btechle3.html after saving his record
     # in all three cases we can render btechle4.html with context
     # to create context we will use the globally available variable application_id
-    record = BtechLETemp.objects.all().filter(application_id = application_id).first()
+    record = BtechLETemp.objects.all().filter(application_id =  request.session.get('application_id')).first()
     context = {'record': record}
     return render(request, 'btechle/btechle4.html', context)
 
 def btechle5(request):
     # if user is not logged in, then he shall be redirected to login page
+    logged_in =  request.session.get('logged_in')
     if not logged_in:
         return redirect('login')
     # if request method is POST, then it means user has clicked on "Save and Next" on the /btechle5.html page
@@ -1362,7 +1385,7 @@ def btechle5(request):
         # if a record for this application id already exists , then we will update the existing record
         # else if a record doesn't exist, we will create a new record
         # so, let's check if a record exists or not
-        existing_record = BtechLETemp.objects.all().filter(application_id = application_id).first()
+        existing_record = BtechLETemp.objects.all().filter(application_id =  request.session.get('application_id')).first()
         if existing_record :
             # update all fields
             existing_record.preference1 = preference1   
@@ -1382,7 +1405,7 @@ def btechle5(request):
             # saving all fields in a new object
             # if the record is existing then it already has application_id and ipu_registration,
             #  but if its getting saved first time then we have to save both of them
-            newform = BtechLETemp(application_id=application_id, ipu_registration=ipu_registration,
+            newform = BtechLETemp(application_id =  request.session.get('application_id'), ipu_registration =  request.session.get('ipu_registration'),
                             preference1=preference1, preference2=preference2, preference3=preference3,
                             preference4=preference4, preference5=preference5, preference6=preference6,
                             preference7=preference7, preference8=preference8, preference9=preference9, 
@@ -1395,12 +1418,13 @@ def btechle5(request):
     # or user is coming from btechle4.html after saving his record
     # in all three cases we can render btechle5.html with context
     # to create context we will use the globally available variable application_id
-    record = BtechLETemp.objects.all().filter(application_id = application_id).first()
+    record = BtechLETemp.objects.all().filter(application_id =  request.session.get('application_id')).first()
     context = {'record': record}
     return render(request, 'btechle/btechle5.html', context)
 
 def btechle6(request):
     # if user is not logged in, then he shall be redirected to login page
+    logged_in =  request.session.get('logged_in')
     if not logged_in:
         return redirect('login')
     # if request method is POST, then it means user has clicked on "Save and Next" on the /btechle6.html page
@@ -1416,7 +1440,7 @@ def btechle6(request):
         # if a record for this application id already exists , then we will update the existing record
         # else if a record doesn't exist, we will create a new record
         # so, let's check if a record exists or not
-        existing_record = BtechLETemp.objects.all().filter(application_id = application_id).first()
+        existing_record = BtechLETemp.objects.all().filter(application_id =  request.session.get('application_id')).first()
         if existing_record :
             # update all fields
             existing_record.passport_photo = passport_photo   
@@ -1449,7 +1473,7 @@ def btechle6(request):
             # saving all fields in a new object
             # if the record is existing then it already has application_id and ipu_registration,
             #  but if its getting saved first time then we have to save both of them
-            newform = BtechLETemp(application_id=application_id, ipu_registration=ipu_registration,
+            newform = BtechLETemp(application_id =  request.session.get('application_id'), ipu_registration =  request.session.get('ipu_registration'),
                             passport_photo=passport_photo, marksheet_10th=marksheet_10th,
                             aadhaar=aadhaar, pancard=pancard, ipuregistrationproof=ipuregistrationproof)
             newform.save()
@@ -1461,12 +1485,13 @@ def btechle6(request):
     # or user is coming from btechle5.html after saving his record
     # in all three cases we can render btechle6.html with context
     # to create context we will use the globally available variable application_id
-    record = BtechLETemp.objects.all().filter(application_id = application_id).first()
+    record = BtechLETemp.objects.all().filter(application_id =  request.session.get('application_id')).first()
     context = {'record': record}
     return render(request, 'btechle/btechle6.html', context)
 
 def btechle7(request):
     # if user is not logged in, then he shall be redirected to login page
+    logged_in =  request.session.get('logged_in')
     if not logged_in:
         return redirect('login')
     # if request method is POST, then it means user has clicked on "Save and Next" on the /btechle7.html page
@@ -1479,7 +1504,7 @@ def btechle7(request):
         # else if a record doesn't exist, we will create a new record
         # (this will never be the case because we are not allowing user to come to /btechle7 if he hasn't already filled previous data , but still handling this case)
         # so, let's check if a record exists or not
-        existing_record = BtechLETemp.objects.all().filter(application_id = application_id).first()
+        existing_record = BtechLETemp.objects.all().filter(application_id =  request.session.get('application_id')).first()
         if existing_record :
             # update all fields
             existing_record.transaction_id = transaction_id   
@@ -1490,7 +1515,7 @@ def btechle7(request):
             return redirect ('btechle')
         else:
             # saving all fields in a new object
-            newform = BtechLETemp(application_id=application_id, ipu_registration=ipu_registration,
+            newform = BtechLETemp(application_id =  request.session.get('application_id'), ipu_registration =  request.session.get('ipu_registration'),
                                 transaction_id=transaction_id, transaction_proof=transaction_proof)
             newform.save()
             return redirect ('btechle')
@@ -1499,7 +1524,7 @@ def btechle7(request):
     # or user is coming from some other part of btechle form by clicking the step-form (progress bar)
     # or user is coming from btechle6.html after saving his record
     # we shall allow the user only in the case when he has submitted all 6 steps
-    record = BtechLETemp.objects.all().filter(application_id = application_id).first()
+    record = BtechLETemp.objects.all().filter(application_id =  request.session.get('application_id')).first()
     # so to check that, we will check whether some value on each step is filled or not
     # before that we can check if record exists or not:
     if not record:
@@ -1530,6 +1555,7 @@ def btechle7(request):
 # BtechLE
 def btechle(request):
     # if user is not logged in, then he shall be redirected to login page
+    logged_in =  request.session.get('logged_in')
     if not logged_in:
         return redirect('login')
     # if request method is POST, then it means user has clicked on "Submit" on the /btech.html page
@@ -1640,18 +1666,18 @@ def btechle(request):
                             maths_10th=maths_10th, science_10th=science_10th, english_10th=english_10th, sst_10th=sst_10th,
                             other_subject_10th=other_subject_10th, other_subject_2_10th=other_subject_2_10th, aggregate_10th=aggregate_10th, 
                             cet_rank=cet_rank, cet_rollno=cet_rollno,
-                            ipu_registration=ipu_registration, special_achievements=special_achievements,
+                            ipu_registration =  request.session.get('ipu_registration'), special_achievements=special_achievements,
                             preference1=preference1, preference2=preference2, preference3=preference3, 
                             preference4=preference4, preference5=preference5, preference6=preference6,
                             preference7=preference7, preference8=preference8, preference9=preference9, 
                             preference10=preference10,
-                            application_id=application_id, transaction_id=transaction_id, diploma_bsc_type=diploma_type, board_diploma_bsc=board_diploma,
+                            application_id =  request.session.get('application_id'), transaction_id=transaction_id, diploma_bsc_type=diploma_type, board_diploma_bsc=board_diploma,
                             year_of_diploma_bsc=year_of_diploma, rollno_diploma_bsc=rollno_diploma, school_diploma_bsc=school_diploma, aggregate_diploma_bsc=agg_diploma,
                             category=category, region=region,
                             ip_address=ip_address, forwarded_address=forwarded_address, browser_info=browser_info, created_at=created_at,)
         newform.save()
         # now saving files after instance is created
-        temp_record = BtechLETemp.objects.get(application_id=application_id)
+        temp_record = BtechLETemp.objects.get(application_id =  request.session.get('application_id'))
         newobj = BtechLE.objects.get(pk=newform.pk)
         newobj.passport_photo = temp_record.passport_photo
         newobj.cet_result = temp_record.cet_result
@@ -1668,28 +1694,30 @@ def btechle(request):
         temp_record.delete()   # deleting the temporary record
         # At this point, form is submitted successfully
         return redirect('btechle_preview')
-    record = BtechLETemp.objects.all().filter(application_id = application_id).first()
+    record = BtechLETemp.objects.all().filter(application_id =  request.session.get('application_id')).first()
     context = {'record': record}
     return render(request, 'btechle/btechle.html', context)
     
 # BtechLE Preview
 def btechle_preview(request):
     # if user is not logged in, then he shall be redirected to login page
+    logged_in =  request.session.get('logged_in')
     if not logged_in:
         return redirect('login')
-    record = BtechLE.objects.filter(application_id=application_id).first()
+    record = BtechLE.objects.filter(application_id =  request.session.get('application_id')).first()
     context = {'record': record}
     return render(request, 'btechle/btechle-preview.html', context)
     
 # Edit BtechLE (after final submission)
 def btechle_edit(request):
     # if user is not logged in, then he shall be redirected to login page
+    logged_in =  request.session.get('logged_in')
     if not logged_in:
         return redirect('login')
     # if request method is POST, then it means user has clicked on "Save" on the /btechle-edit.html page
     # so we shall save the data in permanent table and delete from temporary table
     if request.method == 'POST':
-        record = BtechLE.objects.all().filter(application_id = application_id).first()
+        record = BtechLE.objects.all().filter(application_id =  request.session.get('application_id')).first()
         record.transaction_id = request.POST.get('transaction_id')
         # category and region
         record.category = request.POST.get('category')
@@ -1778,7 +1806,7 @@ def btechle_edit(request):
         # At this point, form is submitted successfully
         return redirect('btechle_preview')
     # GET request: render the filled details
-    record = BtechLE.objects.all().filter(application_id = application_id).first()
+    record = BtechLE.objects.all().filter(application_id =  request.session.get('application_id')).first()
     context = {'record': record}
     return render(request, 'btechle/btechle-edit.html', context)
 
@@ -1788,6 +1816,7 @@ def btechle_edit(request):
 
 def bba1(request):
     # if user is not logged in, then he shall be redirected to login page
+    logged_in =  request.session.get('logged_in')
     if not logged_in:
         return redirect('login')
     # if request method is POST, then it means user has clicked on "Save and Next" on the /bba1.html page
@@ -1811,7 +1840,7 @@ def bba1(request):
         # if a record for this application id already exists , then we will update the existing record
         # else if a record doesn't exist, we will create a new record
         # so, let's check if a record exists or not
-        existing_record = BbaTemp.objects.all().filter(application_id = application_id).first()
+        existing_record = BbaTemp.objects.all().filter(application_id =  request.session.get('application_id')).first()
         if existing_record :
             # update all fields
             existing_record.candidate_first_name = candidate_first_name   
@@ -1834,7 +1863,7 @@ def bba1(request):
             # saving all fields in a new object
             # if the record is existing then it already has application_id and ipu_registration,
             #  but if its getting saved first time then we have to save both of them
-            newform = BbaTemp(application_id=application_id, ipu_registration=ipu_registration,
+            newform = BbaTemp(application_id =  request.session.get('application_id'), ipu_registration =  request.session.get('ipu_registration'),
                             candidate_first_name=candidate_first_name,
                             candidate_middle_name=candidate_middle_name, candidate_last_name=candidate_last_name,
                             email=email, candidate_number=candidate_number, gender=gender, dob=dob, category=category, region=region,
@@ -1847,12 +1876,13 @@ def bba1(request):
     # or user is coming from some other part of bba form by clicking the step-form (progress bar)
     # in all three cases we can render bba1.html with context
     # to create context we will use the globally available variable application_id
-    record = BbaTemp.objects.all().filter(application_id = application_id).first()
+    record = BbaTemp.objects.all().filter(application_id =  request.session.get('application_id')).first()
     context = {'record': record}
     return render(request, 'bba/bba1.html', context)
 
 def bba2(request):
     # if user is not logged in, then he shall be redirected to login page
+    logged_in =  request.session.get('logged_in')
     if not logged_in:
         return redirect('login')
     # if request method is POST, then it means user has clicked on "Save and Next" on the /bba2.html page
@@ -1882,7 +1912,7 @@ def bba2(request):
         # if a record for this application id already exists , then we will update the existing record
         # else if a record doesn't exist, we will create a new record
         # so, let's check if a record exists or not
-        existing_record = BbaTemp.objects.all().filter(application_id = application_id).first()
+        existing_record = BbaTemp.objects.all().filter(application_id =  request.session.get('application_id')).first()
         if existing_record :
             # update all fields
             existing_record.father_first_name = father_first_name   
@@ -1912,7 +1942,7 @@ def bba2(request):
             # saving all fields in a new object
             # if the record is existing then it already has application_id and ipu_registration,
             #  but if its getting saved first time then we have to save both of them
-            newform = BbaTemp(application_id=application_id, ipu_registration=ipu_registration, 
+            newform = BbaTemp(application_id =  request.session.get('application_id'), ipu_registration =  request.session.get('ipu_registration'), 
                             father_first_name=father_first_name, father_middle_name=father_middle_name, father_last_name=father_last_name,
                             mother_first_name=mother_first_name, mother_middle_name=mother_middle_name, mother_last_name=mother_last_name,
                             father_qualification=father_qualification, mother_qualification=mother_qualification,
@@ -1930,12 +1960,13 @@ def bba2(request):
     # or user is coming from bba1.html after saving his record
     # in all three cases we can render bba2.html with context
     # to create context we will use the globally available variable application_id
-    record = BbaTemp.objects.all().filter(application_id = application_id).first()
+    record = BbaTemp.objects.all().filter(application_id =  request.session.get('application_id')).first()
     context = {'record': record}
     return render(request, 'bba/bba2.html', context)
 
 def bba3(request):
     # if user is not logged in, then he shall be redirected to login page
+    logged_in =  request.session.get('logged_in')
     if not logged_in:
         return redirect('login')
     # if request method is POST, then it means user has clicked on "Save and Next" on the /bba3.html page
@@ -1967,7 +1998,7 @@ def bba3(request):
         # if a record for this application id already exists , then we will update the existing record
         # else if a record doesn't exist, we will create a new record
         # so, let's check if a record exists or not
-        existing_record = BbaTemp.objects.all().filter(application_id = application_id).first()
+        existing_record = BbaTemp.objects.all().filter(application_id =  request.session.get('application_id')).first()
         if existing_record :
             # update all fields
             existing_record.board_12th = board_12th   
@@ -1999,7 +2030,7 @@ def bba3(request):
             # saving all fields in a new object
             # if the record is existing then it already has application_id and ipu_registration,
             #  but if its getting saved first time then we have to save both of them
-            newform = BbaTemp(application_id=application_id, ipu_registration=ipu_registration,
+            newform = BbaTemp(application_id =  request.session.get('application_id'), ipu_registration =  request.session.get('ipu_registration'),
                             board_12th=board_12th, year_of_12th=year_of_12th, rollno_12th=rollno_12th, school_12th=school_12th,
                             first_subject_12th=first_subject_12th, second_subject_12th=second_subject_12th, third_subject_12th=third_subject_12th, fourth_subject_12th=fourth_subject_12th,
                             other_subject_12th=other_subject_12th, other_subject_2_12th=other_subject_2_12th, aggregate_12th=aggregate_12th, 
@@ -2014,12 +2045,13 @@ def bba3(request):
     # or user is coming from bba2.html after saving his record
     # in all three cases we can render bba3.html with context
     # to create context we will use the globally available variable application_id
-    record = BbaTemp.objects.all().filter(application_id = application_id).first()
+    record = BbaTemp.objects.all().filter(application_id =  request.session.get('application_id')).first()
     context = {'record': record}
     return render(request, 'bba/bba3.html', context)
 
 def bba4(request):
     # if user is not logged in, then he shall be redirected to login page
+    logged_in =  request.session.get('logged_in')
     if not logged_in:
         return redirect('login')
     # if request method is POST, then it means user has clicked on "Save and Next" on the /bba4.html page
@@ -2033,7 +2065,7 @@ def bba4(request):
         # if a record for this application id already exists , then we will update the existing record
         # else if a record doesn't exist, we will create a new record
         # so, let's check if a record exists or not
-        existing_record = BbaTemp.objects.all().filter(application_id = application_id).first()
+        existing_record = BbaTemp.objects.all().filter(application_id =  request.session.get('application_id')).first()
         if existing_record :
             # update all fields
             existing_record.cet_or_cuet = cet_or_cuet   
@@ -2047,7 +2079,7 @@ def bba4(request):
             # saving all fields in a new object
             # if the record is existing then it already has application_id and ipu_registration,
             #  but if its getting saved first time then we have to save both of them
-            newform = BbaTemp(application_id=application_id, ipu_registration=ipu_registration,
+            newform = BbaTemp(application_id =  request.session.get('application_id'), ipu_registration =  request.session.get('ipu_registration'),
                             cet_rank=cet_rank, cet_rollno=cet_rollno, cet_or_cuet=cet_or_cuet,
                             special_achievements=special_achievements,)
             newform.save()
@@ -2058,12 +2090,13 @@ def bba4(request):
     # or user is coming from bba3.html after saving his record
     # in all three cases we can render bba4.html with context
     # to create context we will use the globally available variable application_id
-    record = BbaTemp.objects.all().filter(application_id = application_id).first()
+    record = BbaTemp.objects.all().filter(application_id =  request.session.get('application_id')).first()
     context = {'record': record}
     return render(request, 'bba/bba4.html', context)
 
 def bba5(request):
     # if user is not logged in, then he shall be redirected to login page
+    logged_in =  request.session.get('logged_in')
     if not logged_in:
         return redirect('login')
     # if request method is POST, then it means user has clicked on "Save and Next" on the /bba5.html page
@@ -2080,7 +2113,7 @@ def bba5(request):
         # if a record for this application id already exists , then we will update the existing record
         # else if a record doesn't exist, we will create a new record
         # so, let's check if a record exists or not
-        existing_record = BbaTemp.objects.all().filter(application_id = application_id).first()
+        existing_record = BbaTemp.objects.all().filter(application_id =  request.session.get('application_id')).first()
         if existing_record :
             # update all fields
             existing_record.passport_photo = passport_photo   
@@ -2108,7 +2141,7 @@ def bba5(request):
             # saving all fields in a new object
             # if the record is existing then it already has application_id and ipu_registration,
             #  but if its getting saved first time then we have to save both of them
-            newform = BbaTemp(application_id=application_id, ipu_registration=ipu_registration,
+            newform = BbaTemp(application_id =  request.session.get('application_id'), ipu_registration =  request.session.get('ipu_registration'),
                             passport_photo=passport_photo, cet_result=cet_result, marksheet_10th=marksheet_10th, marksheet_12th=marksheet_12th,
                             aadhaar=aadhaar, pancard=pancard, ipuregistrationproof=ipuregistrationproof)
             newform.save()
@@ -2120,12 +2153,13 @@ def bba5(request):
     # or user is coming from bba4.html after saving his record
     # in all three cases we can render bba5.html with context
     # to create context we will use the globally available variable application_id
-    record = BbaTemp.objects.all().filter(application_id = application_id).first()
+    record = BbaTemp.objects.all().filter(application_id =  request.session.get('application_id')).first()
     context = {'record': record}
     return render(request, 'bba/bba5.html', context)
 
 def bba6(request):
     # if user is not logged in, then he shall be redirected to login page
+    logged_in =  request.session.get('logged_in')
     if not logged_in:
         return redirect('login')
     # if request method is POST, then it means user has clicked on "Save and Next" on the /bba6.html page
@@ -2138,7 +2172,7 @@ def bba6(request):
         # else if a record doesn't exist, we will create a new record
         # (this will never be the case because we are not allowing user to come to /bba6 if he hasn't already filled previous data , but still handling this case)
         # so, let's check if a record exists or not
-        existing_record = BbaTemp.objects.all().filter(application_id = application_id).first()
+        existing_record = BbaTemp.objects.all().filter(application_id =  request.session.get('application_id')).first()
         if existing_record :
             # update all fields
             existing_record.transaction_id = transaction_id   
@@ -2149,7 +2183,7 @@ def bba6(request):
             return redirect ('bba')
         else:
             # saving all fields in a new object
-            newform = BbaTemp(application_id=application_id, ipu_registration=ipu_registration,
+            newform = BbaTemp(application_id =  request.session.get('application_id'), ipu_registration =  request.session.get('ipu_registration'),
                             transaction_id=transaction_id, transaction_proof=transaction_proof)
             newform.save()
             return redirect ('bba')
@@ -2158,7 +2192,7 @@ def bba6(request):
     # or user is coming from some other part of bba form by clicking the step-form (progress bar)
     # or user is coming from bba5.html after saving his record
     # we shall allow the user only in the case when he has submitted all 5 steps
-    record = BbaTemp.objects.all().filter(application_id = application_id).first()
+    record = BbaTemp.objects.all().filter(application_id =  request.session.get('application_id')).first()
     # so to check that, we will check whether some value on each step is filled or not
     # before that we can check if record exists or not:
     if not record:
@@ -2186,6 +2220,7 @@ def bba6(request):
 # Bba
 def bba(request):
     # if user is not logged in, then he shall be redirected to login page
+    logged_in =  request.session.get('logged_in')
     if not logged_in:
         return redirect('login')
     # if request method is POST, then it means user has clicked on "Submit" on the /bba.html page
@@ -2280,13 +2315,13 @@ def bba(request):
                         maths_10th=maths_10th, science_10th=science_10th, english_10th=english_10th, sst_10th=sst_10th,
                         other_subject_10th=other_subject_10th, other_subject_2_10th=other_subject_2_10th, aggregate_10th=aggregate_10th, 
                         cet_rank=cet_rank, cet_rollno=cet_rollno, cet_or_cuet=cet_or_cuet,
-                        ipu_registration=ipu_registration, special_achievements=special_achievements,
-                        application_id=application_id, transaction_id=transaction_id,
+                        ipu_registration =  request.session.get('ipu_registration'), special_achievements=special_achievements,
+                        application_id =  request.session.get('application_id'), transaction_id=transaction_id,
                         category=category, region=region,
                         ip_address=ip_address, forwarded_address=forwarded_address, browser_info=browser_info, created_at=created_at,)
         newform.save()
         # now saving files after instance is created
-        temp_record = BbaTemp.objects.get(application_id=application_id)
+        temp_record = BbaTemp.objects.get(application_id =  request.session.get('application_id'))
         newobj = Bba.objects.get(pk=newform.pk)
         newobj.passport_photo = temp_record.passport_photo
         newobj.cet_result = temp_record.cet_result
@@ -2300,28 +2335,30 @@ def bba(request):
         temp_record.delete()   # deleting the temporary record
         # At this point, form is submitted successfully
         return redirect('bba_preview')
-    record = BbaTemp.objects.all().filter(application_id = application_id).first()
+    record = BbaTemp.objects.all().filter(application_id =  request.session.get('application_id')).first()
     context = {'record': record}
     return render(request, 'bba/bba.html', context)
     
 # Bba Preview
 def bba_preview(request):
     # if user is not logged in, then he shall be redirected to login page
+    logged_in =  request.session.get('logged_in')
     if not logged_in:
         return redirect('login')
-    record = Bba.objects.filter(application_id=application_id).first()
+    record = Bba.objects.filter(application_id =  request.session.get('application_id')).first()
     context = {'record': record}
     return render(request, 'bba/bba-preview.html', context)
 
 # Edit Bba (after final submission)
 def bba_edit(request):
     # if user is not logged in, then he shall be redirected to login page
+    logged_in =  request.session.get('logged_in')
     if not logged_in:
         return redirect('login')
     # if request method is POST, then it means user has clicked on "Save" on the /bba-edit.html page
     # so we shall save the data in permanent table and delete from temporary table
     if request.method == 'POST':
-        record = Bba.objects.all().filter(application_id = application_id).first()
+        record = Bba.objects.all().filter(application_id =  request.session.get('application_id')).first()
         record.transaction_id = request.POST.get('transaction_id')
         # category and region
         record.category = request.POST.get('category')
@@ -2391,7 +2428,7 @@ def bba_edit(request):
         # At this point, form is submitted successfully
         return redirect('bba_preview')
     # GET request: render the filled details
-    record = Bba.objects.all().filter(application_id = application_id).first()
+    record = Bba.objects.all().filter(application_id =  request.session.get('application_id')).first()
     context = {'record': record}
     return render(request, 'bba/bba-edit.html', context)
 
@@ -2400,6 +2437,7 @@ def bba_edit(request):
 
 def mba1(request):
     # if user is not logged in, then he shall be redirected to login page
+    logged_in =  request.session.get('logged_in')
     if not logged_in:
         return redirect('login')
     # if request method is POST, then it means user has clicked on "Save and Next" on the /mba1.html page
@@ -2423,7 +2461,7 @@ def mba1(request):
         # if a record for this application id already exists , then we will update the existing record
         # else if a record doesn't exist, we will create a new record
         # so, let's check if a record exists or not
-        existing_record = MbaTemp.objects.all().filter(application_id = application_id).first()
+        existing_record = MbaTemp.objects.all().filter(application_id =  request.session.get('application_id')).first()
         if existing_record :
             # update all fields
             existing_record.candidate_first_name = candidate_first_name   
@@ -2446,7 +2484,7 @@ def mba1(request):
             # saving all fields in a new object
             # if the record is existing then it already has application_id and ipu_registration,
             #  but if its getting saved first time then we have to save both of them
-            newform = MbaTemp(application_id=application_id, ipu_registration=ipu_registration,
+            newform = MbaTemp(application_id =  request.session.get('application_id'), ipu_registration =  request.session.get('ipu_registration'),
                             candidate_first_name=candidate_first_name,
                             candidate_middle_name=candidate_middle_name, candidate_last_name=candidate_last_name,
                             email=email, candidate_number=candidate_number, gender=gender, dob=dob, category=category, region=region,
@@ -2459,12 +2497,13 @@ def mba1(request):
     # or user is coming from some other part of mba form by clicking the step-form (progress bar)
     # in all three cases we can render mba1.html with context
     # to create context we will use the globally available variable application_id
-    record = MbaTemp.objects.all().filter(application_id = application_id).first()
+    record = MbaTemp.objects.all().filter(application_id =  request.session.get('application_id')).first()
     context = {'record': record}
     return render(request, 'mba/mba1.html', context)
 
 def mba2(request):
     # if user is not logged in, then he shall be redirected to login page
+    logged_in =  request.session.get('logged_in')
     if not logged_in:
         return redirect('login')
     # if request method is POST, then it means user has clicked on "Save and Next" on the /mba2.html page
@@ -2494,7 +2533,7 @@ def mba2(request):
         # if a record for this application id already exists , then we will update the existing record
         # else if a record doesn't exist, we will create a new record
         # so, let's check if a record exists or not
-        existing_record = MbaTemp.objects.all().filter(application_id = application_id).first()
+        existing_record = MbaTemp.objects.all().filter(application_id =  request.session.get('application_id')).first()
         if existing_record :
             # update all fields
             existing_record.father_first_name = father_first_name   
@@ -2524,7 +2563,7 @@ def mba2(request):
             # saving all fields in a new object
             # if the record is existing then it already has application_id and ipu_registration,
             #  but if its getting saved first time then we have to save both of them
-            newform = MbaTemp(application_id=application_id, ipu_registration=ipu_registration, 
+            newform = MbaTemp(application_id =  request.session.get('application_id'), ipu_registration =  request.session.get('ipu_registration'), 
                             father_first_name=father_first_name, father_middle_name=father_middle_name, father_last_name=father_last_name,
                             mother_first_name=mother_first_name, mother_middle_name=mother_middle_name, mother_last_name=mother_last_name,
                             father_qualification=father_qualification, mother_qualification=mother_qualification,
@@ -2542,12 +2581,13 @@ def mba2(request):
     # or user is coming from mba1.html after saving his record
     # in all three cases we can render mba2.html with context
     # to create context we will use the globally available variable application_id
-    record = MbaTemp.objects.all().filter(application_id = application_id).first()
+    record = MbaTemp.objects.all().filter(application_id =  request.session.get('application_id')).first()
     context = {'record': record}
     return render(request, 'mba/mba2.html', context)
 
 def mba3(request):
     # if user is not logged in, then he shall be redirected to login page
+    logged_in =  request.session.get('logged_in')
     if not logged_in:
         return redirect('login')
     # if request method is POST, then it means user has clicked on "Save and Next" on the /mba3.html page
@@ -2585,7 +2625,7 @@ def mba3(request):
         # if a record for this application id already exists , then we will update the existing record
         # else if a record doesn't exist, we will create a new record
         # so, let's check if a record exists or not
-        existing_record = MbaTemp.objects.all().filter(application_id = application_id).first()
+        existing_record = MbaTemp.objects.all().filter(application_id =  request.session.get('application_id')).first()
         if existing_record :
             # update all fields
             existing_record.board_12th = board_12th   
@@ -2623,7 +2663,7 @@ def mba3(request):
             # saving all fields in a new object
             # if the record is existing then it already has application_id and ipu_registration,
             #  but if its getting saved first time then we have to save both of them
-            newform = MbaTemp(application_id=application_id, ipu_registration=ipu_registration,
+            newform = MbaTemp(application_id =  request.session.get('application_id'), ipu_registration =  request.session.get('ipu_registration'),
                             board_12th=board_12th, year_of_12th=year_of_12th, rollno_12th=rollno_12th, school_12th=school_12th,
                             first_subject_12th=first_subject_12th, second_subject_12th=second_subject_12th, third_subject_12th=third_subject_12th, fourth_subject_12th=fourth_subject_12th,
                             other_subject_12th=other_subject_12th, other_subject_2_12th=other_subject_2_12th, aggregate_12th=aggregate_12th, 
@@ -2640,12 +2680,13 @@ def mba3(request):
     # or user is coming from mba2.html after saving his record
     # in all three cases we can render mba3.html with context
     # to create context we will use the globally available variable application_id
-    record = MbaTemp.objects.all().filter(application_id = application_id).first()
+    record = MbaTemp.objects.all().filter(application_id =  request.session.get('application_id')).first()
     context = {'record': record}
     return render(request, 'mba/mba3.html', context)
 
 def mba4(request):
     # if user is not logged in, then he shall be redirected to login page
+    logged_in =  request.session.get('logged_in')
     if not logged_in:
         return redirect('login')
     # if request method is POST, then it means user has clicked on "Save and Next" on the /mba4.html page
@@ -2659,7 +2700,7 @@ def mba4(request):
         # if a record for this application id already exists , then we will update the existing record
         # else if a record doesn't exist, we will create a new record
         # so, let's check if a record exists or not
-        existing_record = MbaTemp.objects.all().filter(application_id = application_id).first()
+        existing_record = MbaTemp.objects.all().filter(application_id =  request.session.get('application_id')).first()
         if existing_record :
             # update all fields
             existing_record.cat_or_cmat = cat_or_cmat   
@@ -2673,7 +2714,7 @@ def mba4(request):
             # saving all fields in a new object
             # if the record is existing then it already has application_id and ipu_registration,
             #  but if its getting saved first time then we have to save both of them
-            newform = BbaTemp(application_id=application_id, ipu_registration=ipu_registration,
+            newform = BbaTemp(application_id =  request.session.get('application_id'), ipu_registration =  request.session.get('ipu_registration'),
                             cat_or_cmat=cat_or_cmat, cat_or_cmat_rank=cat_or_cmat_rank, cat_or_cmat_rollno=cat_or_cmat_rollno,
                             special_achievements=special_achievements,)
             newform.save()
@@ -2684,12 +2725,13 @@ def mba4(request):
     # or user is coming from mba3.html after saving his record
     # in all three cases we can render mba4.html with context
     # to create context we will use the globally available variable application_id
-    record = MbaTemp.objects.all().filter(application_id = application_id).first()
+    record = MbaTemp.objects.all().filter(application_id =  request.session.get('application_id')).first()
     context = {'record': record}
     return render(request, 'mba/mba4.html', context)
 
 def mba5(request):
     # if user is not logged in, then he shall be redirected to login page
+    logged_in =  request.session.get('logged_in')
     if not logged_in:
         return redirect('login')
     # if request method is POST, then it means user has clicked on "Save and Next" on the /mba5.html page
@@ -2707,7 +2749,7 @@ def mba5(request):
         # if a record for this application id already exists , then we will update the existing record
         # else if a record doesn't exist, we will create a new record
         # so, let's check if a record exists or not
-        existing_record = MbaTemp.objects.all().filter(application_id = application_id).first()
+        existing_record = MbaTemp.objects.all().filter(application_id =  request.session.get('application_id')).first()
         if existing_record :
             # update all fields
             existing_record.passport_photo = passport_photo   
@@ -2736,7 +2778,7 @@ def mba5(request):
             # saving all fields in a new object
             # if the record is existing then it already has application_id and ipu_registration,
             #  but if its getting saved first time then we have to save both of them
-            newform = MbaTemp(application_id=application_id, ipu_registration=ipu_registration,
+            newform = MbaTemp(application_id =  request.session.get('application_id'), ipu_registration =  request.session.get('ipu_registration'),
                             passport_photo=passport_photo, cat_or_cmat_result=cat_or_cmat_result, marksheet_10th=marksheet_10th, marksheet_12th=marksheet_12th,
                             aadhaar=aadhaar, pancard=pancard, ipuregistrationproof=ipuregistrationproof, ug_degree=ug_degree,)
             newform.save()
@@ -2748,12 +2790,13 @@ def mba5(request):
     # or user is coming from mba4.html after saving his record
     # in all three cases we can render mba5.html with context
     # to create context we will use the globally available variable application_id
-    record = MbaTemp.objects.all().filter(application_id = application_id).first()
+    record = MbaTemp.objects.all().filter(application_id =  request.session.get('application_id')).first()
     context = {'record': record}
     return render(request, 'mba/mba5.html', context)
 
 def mba6(request):
     # if user is not logged in, then he shall be redirected to login page
+    logged_in =  request.session.get('logged_in')
     if not logged_in:
         return redirect('login')
     # if request method is POST, then it means user has clicked on "Save and Next" on the /mba6.html page
@@ -2766,7 +2809,7 @@ def mba6(request):
         # else if a record doesn't exist, we will create a new record
         # (this will never be the case because we are not allowing user to come to /mba6 if he hasn't already filled previous data , but still handling this case)
         # so, let's check if a record exists or not
-        existing_record = MbaTemp.objects.all().filter(application_id = application_id).first()
+        existing_record = MbaTemp.objects.all().filter(application_id =  request.session.get('application_id')).first()
         if existing_record :
             # update all fields
             existing_record.transaction_id = transaction_id   
@@ -2777,7 +2820,7 @@ def mba6(request):
             return redirect ('mba')
         else:
             # saving all fields in a new object
-            newform = MbaTemp(application_id=application_id, ipu_registration=ipu_registration,
+            newform = MbaTemp(application_id =  request.session.get('application_id'), ipu_registration =  request.session.get('ipu_registration'),
                             transaction_id=transaction_id, transaction_proof=transaction_proof,)
             newform.save()
             return redirect ('mba')
@@ -2786,7 +2829,7 @@ def mba6(request):
     # or user is coming from some other part of mba form by clicking the step-form (progress bar)
     # or user is coming from mba5.html after saving his record
     # we shall allow the user only in the case when he has submitted all 5 steps
-    record = MbaTemp.objects.all().filter(application_id = application_id).first()
+    record = MbaTemp.objects.all().filter(application_id =  request.session.get('application_id')).first()
     # so to check that, we will check whether some value on each step is filled or not
     # before that we can check if record exists or not:
     if not record:
@@ -2814,6 +2857,7 @@ def mba6(request):
 # Mba
 def mba(request):
     # if user is not logged in, then he shall be redirected to login page
+    logged_in =  request.session.get('logged_in')
     if not logged_in:
         return redirect('login')
     # if request method is POST, then it means user has clicked on "Submit" on the /mba.html page
@@ -2916,13 +2960,13 @@ def mba(request):
                         other_subject_10th=other_subject_10th, other_subject_2_10th=other_subject_2_10th, aggregate_10th=aggregate_10th, 
                         cat_or_cmat=cat_or_cmat, cat_or_cmat_rank=cat_or_cmat_rank, cat_or_cmat_rollno=cat_or_cmat_rollno,
                         ug_type=ug_type, board_ug=board_ug, year_of_ug=year_of_ug, rollno_ug=rollno_ug, school_ug=school_ug, aggregate_ug=aggregate_ug,
-                        ipu_registration=ipu_registration, special_achievements=special_achievements,
-                        application_id=application_id, transaction_id=transaction_id,
+                        ipu_registration =  request.session.get('ipu_registration'), special_achievements=special_achievements,
+                        application_id =  request.session.get('application_id'), transaction_id=transaction_id,
                         category=category, region=region,
                         ip_address=ip_address, forwarded_address=forwarded_address, browser_info=browser_info, created_at=created_at,)
         newform.save()
         # now saving files after instance is created
-        temp_record = MbaTemp.objects.get(application_id=application_id)
+        temp_record = MbaTemp.objects.get(application_id =  request.session.get('application_id'))
         newobj = Mba.objects.get(pk=newform.pk)
         newobj.passport_photo = temp_record.passport_photo
         newobj.cat_or_cmat_result = temp_record.cat_or_cmat_result
@@ -2937,28 +2981,30 @@ def mba(request):
         temp_record.delete()   # deleting the temporary record
         # At this point, form is submitted successfully
         return redirect('mba_preview')
-    record = MbaTemp.objects.all().filter(application_id = application_id).first()
+    record = MbaTemp.objects.all().filter(application_id =  request.session.get('application_id')).first()
     context = {'record': record}
     return render(request, 'mba/mba.html', context)
     
 # Mba Preview
 def mba_preview(request):
     # if user is not logged in, then he shall be redirected to login page
+    logged_in =  request.session.get('logged_in')
     if not logged_in:
         return redirect('login')
-    record = Mba.objects.filter(application_id=application_id).first()
+    record = Mba.objects.filter(application_id =  request.session.get('application_id')).first()
     context = {'record': record}
     return render(request, 'mba/mba-preview.html', context)
 
 # Edit Mba (after final submission)
 def mba_edit(request):
     # if user is not logged in, then he shall be redirected to login page
+    logged_in =  request.session.get('logged_in')
     if not logged_in:
         return redirect('login')
     # if request method is POST, then it means user has clicked on "Save" on the /mba-edit.html page
     # so we shall save the data in permanent table and delete from temporary table
     if request.method == 'POST':
-        record = Mba.objects.all().filter(application_id = application_id).first()
+        record = Mba.objects.all().filter(application_id =  request.session.get('application_id')).first()
         record.transaction_id = request.POST.get('transaction_id')
         # category and region
         record.category = request.POST.get('category')
@@ -3035,6 +3081,6 @@ def mba_edit(request):
         # At this point, form is submitted successfully
         return redirect('mba_preview')
     # GET request: render the filled details
-    record = Mba.objects.all().filter(application_id = application_id).first()
+    record = Mba.objects.all().filter(application_id =  request.session.get('application_id')).first()
     context = {'record': record}
     return render(request, 'mba/mba-edit.html', context)
