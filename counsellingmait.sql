@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Aug 25, 2023 at 08:51 PM
+-- Generation Time: Sep 28, 2023 at 08:56 PM
 -- Server version: 10.4.28-MariaDB
 -- PHP Version: 8.2.4
 
@@ -249,10 +249,10 @@ CREATE TABLE `bba` (
   `rollno_12th` bigint(20) UNSIGNED NOT NULL CHECK (`rollno_12th` >= 0),
   `school_12th` varchar(255) NOT NULL,
   `aggregate_12th` decimal(5,2) NOT NULL,
-  `first_subject_12th` int(10) UNSIGNED DEFAULT NULL,
-  `second_subject_12th` int(10) UNSIGNED DEFAULT NULL,
-  `third_subject_12th` int(10) UNSIGNED DEFAULT NULL,
-  `fourth_subject_12th` int(10) UNSIGNED DEFAULT NULL,
+  `first_subject_12th` int(10) UNSIGNED DEFAULT NULL CHECK (`first_subject_12th` >= 0),
+  `second_subject_12th` int(10) UNSIGNED DEFAULT NULL CHECK (`second_subject_12th` >= 0),
+  `third_subject_12th` int(10) UNSIGNED DEFAULT NULL CHECK (`third_subject_12th` >= 0),
+  `fourth_subject_12th` int(10) UNSIGNED DEFAULT NULL CHECK (`fourth_subject_12th` >= 0),
   `other_subject_12th` varchar(10) NOT NULL,
   `other_subject_2_12th` varchar(10) NOT NULL,
   `board_10th` varchar(255) NOT NULL,
@@ -331,10 +331,10 @@ CREATE TABLE `bba_temp` (
   `rollno_12th` bigint(20) UNSIGNED DEFAULT NULL CHECK (`rollno_12th` >= 0),
   `school_12th` varchar(255) NOT NULL,
   `aggregate_12th` decimal(5,2) DEFAULT NULL,
-  `first_subject_12th` int(10) UNSIGNED DEFAULT NULL,
-  `second_subject_12th` int(10) UNSIGNED DEFAULT NULL,
-  `third_subject_12th` int(10) UNSIGNED DEFAULT NULL,
-  `fourth_subject_12th` int(10) UNSIGNED DEFAULT NULL,
+  `first_subject_12th` int(10) UNSIGNED DEFAULT NULL CHECK (`first_subject_12th` >= 0),
+  `second_subject_12th` int(10) UNSIGNED DEFAULT NULL CHECK (`second_subject_12th` >= 0),
+  `third_subject_12th` int(10) UNSIGNED DEFAULT NULL CHECK (`third_subject_12th` >= 0),
+  `fourth_subject_12th` int(10) UNSIGNED DEFAULT NULL CHECK (`fourth_subject_12th` >= 0),
   `other_subject_12th` varchar(10) NOT NULL,
   `other_subject_2_12th` varchar(10) NOT NULL,
   `board_10th` varchar(255) NOT NULL,
@@ -837,30 +837,25 @@ CREATE TABLE `django_migrations` (
 --
 
 INSERT INTO `django_migrations` (`id`, `app`, `name`, `applied`) VALUES
-(1, 'contenttypes', '0001_initial', '2023-08-17 16:27:58.881260'),
-(2, 'auth', '0001_initial', '2023-08-17 16:27:59.759298'),
-(3, 'admin', '0001_initial', '2023-08-17 16:27:59.959764'),
-(4, 'admin', '0002_logentry_remove_auto_add', '2023-08-17 16:27:59.963871'),
-(5, 'admin', '0003_logentry_add_action_flag_choices', '2023-08-17 16:27:59.982313'),
-(6, 'contenttypes', '0002_remove_content_type_name', '2023-08-17 16:28:00.056872'),
-(7, 'auth', '0002_alter_permission_name_max_length', '2023-08-17 16:28:00.146103'),
-(8, 'auth', '0003_alter_user_email_max_length', '2023-08-17 16:28:00.167459'),
-(9, 'auth', '0004_alter_user_username_opts', '2023-08-17 16:28:00.178420'),
-(10, 'auth', '0005_alter_user_last_login_null', '2023-08-17 16:28:00.247440'),
-(11, 'auth', '0006_require_contenttypes_0002', '2023-08-17 16:28:00.254433'),
-(12, 'auth', '0007_alter_validators_add_error_messages', '2023-08-17 16:28:00.263436'),
-(13, 'auth', '0008_alter_user_username_max_length', '2023-08-17 16:28:00.283443'),
-(14, 'auth', '0009_alter_user_last_name_max_length', '2023-08-17 16:28:00.304482'),
-(15, 'auth', '0010_alter_group_name_max_length', '2023-08-17 16:28:00.325221'),
-(16, 'auth', '0011_update_proxy_permissions', '2023-08-17 16:28:00.334646'),
-(17, 'auth', '0012_alter_user_first_name_max_length', '2023-08-17 16:28:00.354238'),
-(18, 'form', '0001_initial', '2023-08-17 16:28:00.664579'),
-(19, 'sessions', '0001_initial', '2023-08-17 16:28:00.714265'),
-(20, 'form', '0002_alter_bba_first_subject_12th_and_more', '2023-08-17 16:33:49.567372'),
-(21, 'form', '0003_alter_mba_rollno_ug_alter_mba_year_of_ug_and_more', '2023-08-17 17:44:24.181840'),
-(22, 'form', '0004_alter_login_created_at_alter_login_ip_address', '2023-08-21 09:03:28.362966'),
-(23, 'form', '0005_alter_bba_browser_info_alter_bba_created_at_and_more', '2023-08-21 09:03:30.466494'),
-(24, 'form', '0006_bankdetails', '2023-08-25 17:19:23.284476');
+(1, 'contenttypes', '0001_initial', '2023-09-28 17:17:18.886033'),
+(2, 'auth', '0001_initial', '2023-09-28 17:17:19.660001'),
+(3, 'admin', '0001_initial', '2023-09-28 17:17:19.857496'),
+(4, 'admin', '0002_logentry_remove_auto_add', '2023-09-28 17:17:19.873119'),
+(5, 'admin', '0003_logentry_add_action_flag_choices', '2023-09-28 17:17:19.889694'),
+(6, 'contenttypes', '0002_remove_content_type_name', '2023-09-28 17:17:19.991902'),
+(7, 'auth', '0002_alter_permission_name_max_length', '2023-09-28 17:17:20.086645'),
+(8, 'auth', '0003_alter_user_email_max_length', '2023-09-28 17:17:20.110304'),
+(9, 'auth', '0004_alter_user_username_opts', '2023-09-28 17:17:20.122264'),
+(10, 'auth', '0005_alter_user_last_login_null', '2023-09-28 17:17:20.213722'),
+(11, 'auth', '0006_require_contenttypes_0002', '2023-09-28 17:17:20.218241'),
+(12, 'auth', '0007_alter_validators_add_error_messages', '2023-09-28 17:17:20.232146'),
+(13, 'auth', '0008_alter_user_username_max_length', '2023-09-28 17:17:20.258369'),
+(14, 'auth', '0009_alter_user_last_name_max_length', '2023-09-28 17:17:20.286443'),
+(15, 'auth', '0010_alter_group_name_max_length', '2023-09-28 17:17:20.312819'),
+(16, 'auth', '0011_update_proxy_permissions', '2023-09-28 17:17:20.320855'),
+(17, 'auth', '0012_alter_user_first_name_max_length', '2023-09-28 17:17:20.330381'),
+(18, 'sessions', '0001_initial', '2023-09-28 17:17:20.392808'),
+(19, 'form', '0001_initial', '2023-09-28 18:54:17.785756');
 
 -- --------------------------------------------------------
 
@@ -939,10 +934,10 @@ CREATE TABLE `mba` (
   `rollno_12th` bigint(20) UNSIGNED NOT NULL CHECK (`rollno_12th` >= 0),
   `school_12th` varchar(255) NOT NULL,
   `aggregate_12th` decimal(5,2) NOT NULL,
-  `first_subject_12th` int(10) UNSIGNED DEFAULT NULL,
-  `second_subject_12th` int(10) UNSIGNED DEFAULT NULL,
-  `third_subject_12th` int(10) UNSIGNED DEFAULT NULL,
-  `fourth_subject_12th` int(10) UNSIGNED DEFAULT NULL,
+  `first_subject_12th` int(10) UNSIGNED DEFAULT NULL CHECK (`first_subject_12th` >= 0),
+  `second_subject_12th` int(10) UNSIGNED DEFAULT NULL CHECK (`second_subject_12th` >= 0),
+  `third_subject_12th` int(10) UNSIGNED DEFAULT NULL CHECK (`third_subject_12th` >= 0),
+  `fourth_subject_12th` int(10) UNSIGNED DEFAULT NULL CHECK (`fourth_subject_12th` >= 0),
   `other_subject_12th` varchar(100) NOT NULL,
   `other_subject_2_12th` varchar(100) NOT NULL,
   `board_10th` varchar(255) NOT NULL,
@@ -957,12 +952,12 @@ CREATE TABLE `mba` (
   `other_subject_10th` varchar(100) NOT NULL,
   `other_subject_2_10th` varchar(100) NOT NULL,
   `cat_or_cmat` varchar(10) NOT NULL,
-  `cat_or_cmat_rank` int(10) UNSIGNED DEFAULT NULL,
-  `cat_or_cmat_rollno` bigint(20) UNSIGNED DEFAULT NULL,
+  `cat_or_cmat_rank` int(10) UNSIGNED DEFAULT NULL CHECK (`cat_or_cmat_rank` >= 0),
+  `cat_or_cmat_rollno` bigint(20) UNSIGNED DEFAULT NULL CHECK (`cat_or_cmat_rollno` >= 0),
   `ug_type` varchar(75) NOT NULL,
   `board_ug` varchar(75) NOT NULL,
-  `year_of_ug` int(10) UNSIGNED DEFAULT NULL,
-  `rollno_ug` bigint(20) UNSIGNED DEFAULT NULL,
+  `year_of_ug` int(10) UNSIGNED DEFAULT NULL CHECK (`year_of_ug` >= 0),
+  `rollno_ug` bigint(20) UNSIGNED DEFAULT NULL CHECK (`rollno_ug` >= 0),
   `school_ug` varchar(125) NOT NULL,
   `aggregate_ug` varchar(25) NOT NULL,
   `special_achievements` varchar(255) NOT NULL,
@@ -1028,10 +1023,10 @@ CREATE TABLE `mba_temp` (
   `rollno_12th` bigint(20) UNSIGNED DEFAULT NULL CHECK (`rollno_12th` >= 0),
   `school_12th` varchar(255) NOT NULL,
   `aggregate_12th` decimal(5,2) DEFAULT NULL,
-  `first_subject_12th` int(10) UNSIGNED DEFAULT NULL,
-  `second_subject_12th` int(10) UNSIGNED DEFAULT NULL,
-  `third_subject_12th` int(10) UNSIGNED DEFAULT NULL,
-  `fourth_subject_12th` int(10) UNSIGNED DEFAULT NULL,
+  `first_subject_12th` int(10) UNSIGNED DEFAULT NULL CHECK (`first_subject_12th` >= 0),
+  `second_subject_12th` int(10) UNSIGNED DEFAULT NULL CHECK (`second_subject_12th` >= 0),
+  `third_subject_12th` int(10) UNSIGNED DEFAULT NULL CHECK (`third_subject_12th` >= 0),
+  `fourth_subject_12th` int(10) UNSIGNED DEFAULT NULL CHECK (`fourth_subject_12th` >= 0),
   `other_subject_12th` varchar(10) NOT NULL,
   `other_subject_2_12th` varchar(10) NOT NULL,
   `board_10th` varchar(255) NOT NULL,
@@ -1046,12 +1041,12 @@ CREATE TABLE `mba_temp` (
   `other_subject_10th` varchar(100) NOT NULL,
   `other_subject_2_10th` varchar(100) NOT NULL,
   `cat_or_cmat` varchar(10) NOT NULL,
-  `cat_or_cmat_rank` int(10) UNSIGNED DEFAULT NULL,
-  `cat_or_cmat_rollno` bigint(20) UNSIGNED DEFAULT NULL,
+  `cat_or_cmat_rank` int(10) UNSIGNED DEFAULT NULL CHECK (`cat_or_cmat_rank` >= 0),
+  `cat_or_cmat_rollno` bigint(20) UNSIGNED DEFAULT NULL CHECK (`cat_or_cmat_rollno` >= 0),
   `ug_type` varchar(75) NOT NULL,
   `board_ug` varchar(75) NOT NULL,
-  `year_of_ug` int(10) UNSIGNED DEFAULT NULL,
-  `rollno_ug` bigint(20) UNSIGNED DEFAULT NULL,
+  `year_of_ug` int(10) UNSIGNED DEFAULT NULL CHECK (`year_of_ug` >= 0),
+  `rollno_ug` bigint(20) UNSIGNED DEFAULT NULL CHECK (`rollno_ug` >= 0),
   `school_ug` varchar(125) NOT NULL,
   `aggregate_ug` varchar(25) NOT NULL,
   `special_achievements` varchar(255) NOT NULL,
@@ -1339,7 +1334,7 @@ ALTER TABLE `django_content_type`
 -- AUTO_INCREMENT for table `django_migrations`
 --
 ALTER TABLE `django_migrations`
-  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=25;
+  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=20;
 
 --
 -- AUTO_INCREMENT for table `login`

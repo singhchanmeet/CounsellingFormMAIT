@@ -16,7 +16,7 @@ class BtechTempAdmin(ExportActionMixin, admin.ModelAdmin):
 
 # For Btech
 class BtechAdmin(ExportActionMixin, admin.ModelAdmin):
-    list_filter = ['jee_rank']         #for adding filter option
+    list_filter = ['allow_for_counselling', 'allow_editing', 'jee_rank']         #for adding filter option
     search_fields = ['jee_rank', 'candidate_first_name']         # for adding search option
     readonly_fields = ['photograph_preview']       # non editable field
     list_display = ('id','ipu_registration', 'candidate_first_name', 'allow_for_counselling', 'allow_editing', 'jee_rank', 'application_id','ip_address','created_at')    # telling which fields to display
@@ -102,7 +102,7 @@ class BtechLETempAdmin(ExportActionMixin, admin.ModelAdmin):
 
 # For BtechLE
 class BtechLEAdmin(ExportActionMixin, admin.ModelAdmin):
-    list_filter = ['cet_rank']         #for adding filter option
+    list_filter = ['allow_for_counselling', 'allow_editing','cet_rank']         #for adding filter option
     search_fields = ['cet_rank', 'candidate_first_name']         # for adding search option
     readonly_fields = ['photograph_preview']       # non editable field
     list_display = ('id', 'ipu_registration', 'candidate_first_name','allow_for_counselling', 'allow_editing', 'cet_rank', 'application_id','ip_address','created_at')    # telling which fields to display
@@ -119,7 +119,7 @@ class BtechLEAdmin(ExportActionMixin, admin.ModelAdmin):
             all_ids.append(query.id)
         all_records = BtechLE.objects.filter(pk__in = all_ids) #pk is primary key
         context = {'all_records' : all_records}
-        return render(request,'pdfs/pdfs-btechle.html', context)
+        return render(request,'btechle/pdfs-btechle.html', context)
     
     @admin.action(description='Allow for Counselling')
     def allowCounselling(modeladmin, request, queryset):
@@ -187,7 +187,7 @@ class BbaTempAdmin(ExportActionMixin, admin.ModelAdmin):
 
 # For Bba
 class BbaAdmin(ExportActionMixin, admin.ModelAdmin):
-    list_filter = ['cet_rank', 'cet_or_cuet']         #for adding filter option
+    list_filter = ['allow_for_counselling', 'allow_editing', 'cet_or_cuet','cet_rank']         #for adding filter option
     search_fields = ['cet_rank', 'candidate_first_name']         # for adding search option
     readonly_fields = ['photograph_preview']       # non editable field
     list_display = ('id','ipu_registration', 'candidate_first_name', 'allow_for_counselling', 'allow_editing', 'cet_rank', 'application_id','ip_address','created_at')    # telling which fields to display
@@ -204,7 +204,7 @@ class BbaAdmin(ExportActionMixin, admin.ModelAdmin):
             all_ids.append(query.id)
         all_records = Bba.objects.filter(pk__in = all_ids) #pk is primary key
         context = {'all_records' : all_records}
-        return render(request,'pdfs/pdfs-bba.html', context)
+        return render(request,'bba/pdfs-bba.html', context)
     
     @admin.action(description='Allow for Counselling')
     def allowCounselling(modeladmin, request, queryset):
@@ -272,7 +272,7 @@ class MbaTempAdmin(ExportActionMixin, admin.ModelAdmin):
 
 # For Mba
 class MbaAdmin(ExportActionMixin, admin.ModelAdmin):
-    list_filter = ['cat_or_cmat', 'cat_or_cmat_rank']         #for adding filter option
+    list_filter = ['allow_for_counselling', 'allow_editing','cat_or_cmat', 'cat_or_cmat_rank']         #for adding filter option
     search_fields = ['cat_or_cmat_rank', 'candidate_first_name']         # for adding search option
     readonly_fields = ['photograph_preview']       # non editable field
     list_display = ('id','ipu_registration', 'candidate_first_name', 'allow_for_counselling', 'allow_editing', 'cat_or_cmat_rank', 'cat_or_cmat', 'application_id','ip_address','created_at')    # telling which fields to display
@@ -289,7 +289,7 @@ class MbaAdmin(ExportActionMixin, admin.ModelAdmin):
             all_ids.append(query.id)
         all_records = Mba.objects.filter(pk__in = all_ids) #pk is primary key
         context = {'all_records' : all_records}
-        return render(request,'pdfs/pdfs-mba.html', context)
+        return render(request,'mba/pdfs-mba.html', context)
     
     @admin.action(description='Allow for Counselling')
     def allowCounselling(modeladmin, request, queryset):
@@ -382,4 +382,4 @@ admin.site.register(Session)
 
 admin.site.site_header = "MAIT Admin"
 admin.site.site_title = "Admin Portal"
-admin.site.index_title = "MAIT Admin Portal"
+admin.site.index_title = "MAIT"
